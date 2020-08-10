@@ -25,7 +25,7 @@ Low-level methods for handling a MiCADO cluster with Apache LibCloud
 """
 
 
-class NovaCloudLauncher:
+class OpenStackLauncher:
     """
     For launching a MiCADO Master with Apache LibCloud
     """
