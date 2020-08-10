@@ -10,6 +10,7 @@ from .api.client import SubmitterClient
 
 from .launcher.libcloud import LibCloudLauncher
 from .launcher.occopus import OccopusLauncher
+from .launcher.openstack import OpenStackLauncher
 
 from .models.application import Applications
 from .models.cluster import MicadoCluster
@@ -19,6 +20,7 @@ from .exceptions import MicadoException
 LAUNCHERS = {
     "libcloud": LibCloudLauncher,
     "occopus": OccopusLauncher,
+    "openstack": OpenStackLauncher,
 }
 
 

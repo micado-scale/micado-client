@@ -20,12 +20,12 @@ class MicadoCluster(Model):
     def api(self, api):
         self.client.api = api
 
-    def create(self):
+    def create(self, **kwargs):
         """
         call lower level methods to create a MiCADO master
         point to the created submitter API
         """
-        self.launcher.launch()
+        self.launcher.launch(**kwargs)
         api_end = self.launcher.get_api_endpoint()
         api_vers = self.launcher.get_api_version()
 
@@ -38,4 +38,4 @@ class MicadoCluster(Model):
         remove the associated API object
         """
         self.api = None
-        self.launcher.delete()
+        self.launcher.delete(**kwargs)
