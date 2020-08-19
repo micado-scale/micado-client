@@ -1,5 +1,5 @@
 """
-Low-level methods for handling a MiCADO cluster with Occopus
+Low-level methods for handling a MiCADO master with Occopus
 """
 class OccopusLauncher:
     """

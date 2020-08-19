@@ -9,7 +9,7 @@ from libcloud.compute.types import Provider
 
 
 """
-Low-level methods for handling a MiCADO cluster with Apache LibCloud
+Low-level methods for handling a MiCADO master with Apache LibCloud
 """
 
 

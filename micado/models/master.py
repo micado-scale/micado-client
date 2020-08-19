@@ -1,12 +1,12 @@
 """
-Higher-level methods to manage the MiCADO cluster
+Higher-level methods to manage the MiCADO master
 """
 
 from .base import Model
 
 from ..api.client import SubmitterClient
 
-class MicadoCluster(Model):
+class MicadoMaster(Model):
 
     @property
     def launcher(self):

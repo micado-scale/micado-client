@@ -13,7 +13,7 @@ from .launcher.occopus import OccopusLauncher
 from .launcher.openstack import OpenStackLauncher
 
 from .models.application import Applications
-from .models.cluster import MicadoCluster
+from .models.master import MicadoMaster
 
 from .exceptions import MicadoException
 
@@ -95,8 +95,7 @@ class MicadoClient:
     def applications(self):
         return Applications(client=self)
 
-    @property
-    def cluster(self):
+    def master(self):
         if not self.launcher:
             raise MicadoException("No launcher defined")
-        return MicadoCluster(client=self)
+        return MicadoMaster(client=self)
