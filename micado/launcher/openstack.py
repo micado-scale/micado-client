@@ -102,6 +102,7 @@ class OpenStackLauncher:
         self._deploy_micado_master()
         self._check_port_availability(ip.floating_ip_address, 443)
         logger.info('MiCADO deployed!')
+        self._get_self_signed_cert(ip.floating_ip_address)
 
     def get_api_endpoint(self):
         """
@@ -355,3 +356,12 @@ class OpenStackLauncher:
                 attempts * sleep_time))
         else:
             logger.info('SSH is available.')
+
+    def _get_self_signed_cert(self, ip):
+        logger.info('Get MiCADO self_signed cert')
+        result = subprocess.run(["scp", 'ubuntu@'+ip+':/var/lib/micado/zorp/config/ssl.pem', self.home],
+                                shell=False,
+                                stdin=None,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                check=True)
