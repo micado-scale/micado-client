@@ -23,19 +23,25 @@ import openstack
 from openstack import connection
 
 """
-Low-level methods for handling a MiCADO cluster with Apache LibCloud
+Low-level methods for handling a MiCADO master with OpenStackSDK
 """
-with open('/home/mayster/.micado-cli/config.yml') as f:
-    yaml = YAML()
-    config = yaml.load(f)
-
-logging.config.dictConfig(config["logging"])
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+fh = logging.handlers.RotatingFileHandler(
+    filename=str(Path.home())+'/.micado-cli/micado-cli.log', mode='a', maxBytes=52428800, backupCount=3)
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s : %(message)s')
+ch.setFormatter(formatter)
+fh.setFormatter(formatter)
+logger.addHandler(ch)
+logger.addHandler(fh)
 
 
 class OpenStackLauncher:
     """
-    For launching a MiCADO Master with Apache LibCloud
+    For launching a MiCADO Master with OpenStackSDK
     """
     home = str(Path.home())+'/.micado-cli/'
     micado_version = '0.9.0'
@@ -115,6 +121,7 @@ class OpenStackLauncher:
         """
         Destroy the MiCADO Master node
         """
+        # TODO: Destroy MiCADO application first
         conn, _ = self.get_connection(
             auth_url, region, project_id, user_domain_name)
         if conn.get_server(id) is None:
@@ -336,11 +343,11 @@ class OpenStackLauncher:
                 attempts, max_attempts, sleep_time))
             time.sleep(sleep_time)
             result = subprocess.run(["ssh", "-i", self.home+'micado_cli_config_priv_key', "ubuntu@"+ip, "ls -lah"],
-                                    shell=False,
-                                    stdin=None,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    check=False)
+                                shell=False,
+                                stdin=None,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                check=False)
             err = result.stderr.decode()
 
         if attempts == max_attempts:
