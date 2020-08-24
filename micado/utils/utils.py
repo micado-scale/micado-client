@@ -8,7 +8,7 @@ def check_launch(func):
     """
     @functools.wraps(func)
     def inner(self, *args, **kwargs):
-        if self.launcher and not self.api:
+        if getattr(self, "launcher", None) and not self.api:
             raise MicadoException("Launcher not yet connected to API")
         return func(self, *args, **kwargs)
     return inner

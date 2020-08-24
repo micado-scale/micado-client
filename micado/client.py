@@ -11,10 +11,9 @@ from .api.client import SubmitterClient
 from .launcher.libcloud import LibCloudLauncher
 from .launcher.occopus import OccopusLauncher
 
-from .models.application import Application
+from .models.application import Applications
 from .models.cluster import MicadoCluster
 
-from .utils.utils import check_launch
 from .exceptions import MicadoException
 
 LAUNCHERS = {
@@ -22,22 +21,44 @@ LAUNCHERS = {
     "occopus": OccopusLauncher,
 }
 
+
 class MicadoClient:
     """
+    The MiCADO Client
+
+    Builds and communicates with a MiCADO Master node
+
     Usage with a launcher:
 
-        >> import micado
-        >> client = micado.MicadoClient(launcher="libcloud")
-        >> client.cluster().create()
-        >> client.applications().list()
-        >> client.cluster().destroy()
+        >>> import micado
+        >>> client = micado.MicadoClient(launcher="libcloud")
+        >>> client.cluster.create()
+        >>> client.applications.list()
+        >>> client.cluster.destroy()
 
     Usage without a launcher:
 
-        >> import micado
-        >> client = micado.MicadoClient(endpoint="http://micado:5050/" version="v1.0")
-        >> client.applications().list()    
+        >>> from micado import MicadoClient
+        >>> client = MicadoClient(
+        ...     endpoint="https://micado/toscasubmitter/",
+        ...     version="v2.0",
+        ...     verify=False,
+        ...     auth=("ssl_user", "ssl_pass")
+        ... )
+        >>> client.applications.list()
+
+        Args:
+            endpoint (string): Full URL to API endpoint (omit version).
+                Required.
+            version (string, optional): MiCADO API Version (minimum v2.0).
+                Defaults to 'v2.0'.
+            verify (bool, optional): Verify certificate on the client-side.
+                OR (str): Path to cert bundle (.pem) to verfiy against.
+                Defaults to True.
+            auth (tuple, optional): Basic auth credentials (<user>, <pass>).
+                Defaults to None.
     """
+
     def __init__(self, *args, **kwargs):
         launcher = kwargs.pop("launcher", "").lower()
         if launcher:
@@ -49,12 +70,12 @@ class MicadoClient:
         else:
             self.api = SubmitterClient(*args, **kwargs)
 
-
     @classmethod
     def from_master(cls):
         """
         Usage:
-            >> client = micado.MicadoClient.from_master() if ENVIRO below is set
+            >>> from micado import MicadoClient
+            >>> client = MicadoClient.from_master() if ENV below is set
         """
         try:
             submitter_endpoint = os.environ["MICADO_API_ENDPOINT"]
@@ -62,12 +83,17 @@ class MicadoClient:
         except KeyError as err:
             raise MicadoException(f"Environment variable {err} not defined!")
 
-        return cls(endpoint=submitter_endpoint, version=submitter_version)
+        return cls(
+            endpoint=submitter_endpoint,
+            version=submitter_version,
+            verify=False,
+        )
 
-    @check_launch
+    @property
     def applications(self):
-        return Application(client=self)
+        return Applications(client=self)
 
+    @property
     def cluster(self):
         if not self.launcher:
             raise MicadoException("No launcher defined")
