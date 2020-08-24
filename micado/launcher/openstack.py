@@ -124,11 +124,11 @@ class OpenStackLauncher:
         Destroy the MiCADO Master node
         """
         # TODO: Destroy MiCADO application first
-        # conn, _ = self.get_connection(
-        #     auth_url, region, project_id, user_domain_name)
-        # if conn.get_server(id) is None:
-        #     raise Exception("{} is not a valid VM ID!".format(id))
-        # conn.delete_server(id)
+        conn, _ = self.get_connection(
+            auth_url, region, project_id, user_domain_name)
+        if conn.get_server(id) is None:
+            raise Exception("{} is not a valid VM ID!".format(id))
+        conn.delete_server(id)
         logger.info('Dropping node {}'.format(id))
         yaml = YAML()
         content = None
