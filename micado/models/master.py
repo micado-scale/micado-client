@@ -6,6 +6,7 @@ from .base import Model
 
 from ..api.client import SubmitterClient
 
+
 class MicadoMaster(Model):
 
     @property
@@ -31,8 +32,7 @@ class MicadoMaster(Model):
 
         self.api = SubmitterClient(endpoint=api_end, version=api_vers)
 
-
-    def destroy(self):
+    def destroy(self, **kwargs):
         """
         call lower level methods to ddelete a MiCADO master
         remove the associated API object

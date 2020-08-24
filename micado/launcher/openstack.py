@@ -46,6 +46,7 @@ class OpenStackLauncher:
     home = str(Path.home())+'/.micado-cli/'
     micado_version = '0.9.0'
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
+    api_version = 'v2.0'
 
     def launch(self, auth_url, image, flavor, network, security_group='all', keypair=None, region=None,
                user_domain_name='Default', project_id=None, micado_user='admin', micado_password='admin'):
@@ -93,16 +94,16 @@ class OpenStackLauncher:
         self._extract_tar()
         self._configure_ansible_playbook(
             ip.floating_ip_address, micado_user, micado_password)
-        #
         self._check_port_availability(ip.floating_ip_address, 22)
         self._remove_know_host()
         self._get_ssh_fingerprint(ip.floating_ip_address)
         self._check_ssh_availability(ip.floating_ip_address)
-        #
         self._deploy_micado_master()
         self._check_port_availability(ip.floating_ip_address, 443)
         logger.info('MiCADO deployed!')
-        self._get_self_signed_cert(ip.floating_ip_address)
+        self._get_self_signed_cert(ip.floating_ip_address, server.id)
+        self._store_data(self.api_version, ip.floating_ip_address,
+                         micado_user, micado_password, server.id)
 
     def get_api_endpoint(self):
         """
@@ -116,19 +117,33 @@ class OpenStackLauncher:
         """
         Return the MiCADO Master Submitter API version
         """
-        return "v1.0"
+        return "v2.0"
 
     def delete(self, id, auth_url, region=None, user_domain_name='Default', project_id=None):
         """
         Destroy the MiCADO Master node
         """
         # TODO: Destroy MiCADO application first
-        conn, _ = self.get_connection(
-            auth_url, region, project_id, user_domain_name)
-        if conn.get_server(id) is None:
-            raise Exception("{} is not a valid VM ID!".format(id))
-        conn.delete_server(id)
+        # conn, _ = self.get_connection(
+        #     auth_url, region, project_id, user_domain_name)
+        # if conn.get_server(id) is None:
+        #     raise Exception("{} is not a valid VM ID!".format(id))
+        # conn.delete_server(id)
         logger.info('Dropping node {}'.format(id))
+        yaml = YAML()
+        content = None
+        with open(self.home+'data.yml', mode='r') as f:
+            content=yaml.load(f)
+        search = [i for i in content["masters"] if i.get(id, None)]
+        if not search:
+            # TODO: handle if it is not in the file
+            logger.debug("This {} ID can not find in the data file.".format(id))
+            pass
+        else:
+            logger.debug("Remove {} record".format(search))
+            content["masters"].remove(search[0])
+            with open(self.home+'data.yml', mode='w') as f:
+                yaml.dump(content, f)
         return "Destroyed"
 
     def get_credentials(self):
@@ -344,12 +359,13 @@ class OpenStackLauncher:
                 attempts, max_attempts, sleep_time))
             time.sleep(sleep_time)
             result = subprocess.run(["ssh", "-i", self.home+'micado_cli_config_priv_key', "ubuntu@"+ip, "ls -lah"],
-                                shell=False,
-                                stdin=None,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                check=False)
+                                    shell=False,
+                                    stdin=None,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    check=False)
             err = result.stderr.decode()
+            attempts += 1
 
         if attempts == max_attempts:
             raise Exception('{} second passed, and still cannot reach SSH.'.format(
@@ -357,11 +373,36 @@ class OpenStackLauncher:
         else:
             logger.info('SSH is available.')
 
-    def _get_self_signed_cert(self, ip):
+    def _get_self_signed_cert(self, ip, id):
         logger.info('Get MiCADO self_signed cert')
-        result = subprocess.run(["scp", 'ubuntu@'+ip+':/var/lib/micado/zorp/config/ssl.pem', self.home],
-                                shell=False,
-                                stdin=None,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                check=True)
+        subprocess.run(["scp", 'ubuntu@'+ip+':/var/lib/micado/zorp/config/ssl.pem', self.home+id+'-ssl.pem'],
+                       shell=False,
+                       stdin=None,
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE,
+                       check=True)
+
+    def _store_data(self, api_version, ip, micado_user, micado_password, server_id):
+        # check if file does exist
+        logger.debug("Save data")
+        file_location = self.home+'data.yml'
+        cert_path = server_id+'-ssl.pem'
+        endpoint = ip+'/toscasubmitter/'+api_version
+        yaml = YAML()
+        yaml.indent(mapping=2, sequence=4, offset=2)
+        content = None
+
+        item = [{server_id: {"api_version": api_version, "cert_path": cert_path, "endpoint": endpoint,
+                             "ip": ip, "micado_user": micado_user, "micado_password": micado_password}}]
+        if os.path.isfile(file_location):
+            logger.debug("Data file exist.")
+            with open(file_location) as f:
+                content = yaml.load(f)
+                content["masters"] += item
+        else:
+            logger.debug("Data file does not exist. Creating new file")
+            content = {"masters": [{server_id: {"api_version": api_version, "cert_path": cert_path, "endpoint": endpoint,
+                                                "ip": ip, "micado_user": micado_user, "micado_password": micado_password}}]}
+
+        with open(self.home+'data.yml', "w") as f:
+            yaml.dump(content, f)
