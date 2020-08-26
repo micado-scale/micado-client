@@ -45,7 +45,8 @@ class OpenStackLauncher:
     """
     home = str(Path.home())+'/.micado-cli/'
     micado_version = '0.9.0'
-    ansible_folder = home+'ansible-micado-'+micado_version+'/'
+    # ansible_folder = home+'ansible-micado-'+micado_version+'/'
+    ansible_folder = home+'ansible-micado-develop/'
     api_version = 'v2.0'
 
     def launch(self, auth_url, image, flavor, network, security_group='all', keypair=None, region=None,
@@ -248,8 +249,9 @@ class OpenStackLauncher:
 
     def _download_ansible_micado(self):
         logger.info('Download Ansible MiCADO')
-        url = 'https://github.com/micado-scale/ansible-micado/releases/download/v' + \
-            self.micado_version+'/ansible-micado-'+self.micado_version+'.tar.gz'
+        # url = 'https://github.com/micado-scale/ansible-micado/releases/download/v' + \
+        #     self.micado_version+'/ansible-micado-'+self.micado_version+'.tar.gz'
+        url = 'https://github.com/micado-scale/ansible-micado/archive/develop.tar.gz'
         r = requests.get(url)
         tarfile_location = self.home+'ansible-micado-'+self.micado_version+'.tar.gz'
         with open(tarfile_location, 'wb') as f:
@@ -387,7 +389,7 @@ class OpenStackLauncher:
         logger.debug("Save data")
         file_location = self.home+'data.yml'
         cert_path = server_id+'-ssl.pem'
-        endpoint = ip+'/toscasubmitter/'+api_version
+        endpoint = 'https://'+ip+'/toscasubmitter/'+api_version
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
         content = None
