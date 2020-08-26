@@ -49,7 +49,7 @@ class OpenStackLauncher:
     ansible_folder = home+'ansible-micado-develop/'
     api_version = 'v2.0'
 
-    def launch(self, auth_url, image, flavor, network, security_group='all', keypair=None, region=None,
+    def launch(self, auth_url, image, flavor, network, keypair, security_group='all', region=None,
                user_domain_name='Default', project_id=None, micado_user='admin', micado_password='admin'):
         """
         Create the MiCADO Master node
@@ -81,7 +81,7 @@ class OpenStackLauncher:
         """.format(pub_key)
         name_id = uuid.uuid1()
         server = conn_nova.servers.create('MiCADO-Master-{}'.format(name_id.hex), image.id, flavor.id, security_groups=[
-            security_group.id], nincs=network.id, key_name=keypair.name, userdata=cloud_init_config)
+            security_group.id], nics=[{"net-id": network.id}], key_name=keypair.name, userdata=cloud_init_config)
         # server = conn.compute.create_server(
         #     name='MiCADO-Master-{}'.format(name_id.hex), image_id=image.id, flavor_id=flavor.id,
         #     key_name=keypair.name, userdata=cloud_init_config, timeout=300, networks=[{"uuid": network.id}], security_groups=[{"name": security_group.id}])
@@ -367,6 +367,7 @@ class OpenStackLauncher:
                                     stderr=subprocess.PIPE,
                                     check=False)
             err = result.stderr.decode()
+            logger.debug(result.stderr.decode())
             attempts += 1
 
         if attempts == max_attempts:
