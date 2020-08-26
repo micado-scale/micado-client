@@ -4,3 +4,4 @@ pycryptodome==3.9.8
 python-novaclient==17.2.0
 openstacksdk==0.48.0
 apache-libcloud==3.1.0
+ansible==2.9.12
