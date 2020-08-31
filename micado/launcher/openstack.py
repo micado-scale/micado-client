@@ -22,6 +22,8 @@ from ruamel.yaml import YAML
 import openstack
 from openstack import connection
 
+from ..exceptions import MicadoException
+
 """
 Low-level methods for handling a MiCADO master with OpenStackSDK
 """
@@ -54,65 +56,99 @@ class OpenStackLauncher:
         """
         Create the MiCADO Master node
         """
-        if not self._check_home_folder():
-            os.mkdir(self.home)
-        pub_key = self._get_pub_key()
-        conn, conn_nova = self.get_connection(
-            auth_url, region, project_id, user_domain_name)
-        image = conn.get_image(image)
-        flavor = conn.get_flavor(flavor)
-        network = conn.get_network(network)
-        keypair = conn.get_keypair(keypair)
-        security_group = conn.get_security_group(security_group)
-        unused_ip = self.get_unused_floating_ip(conn)
-        if len(unused_ip) < 1:
-            raise Exception("Can't find availabe floating IP!")
-        ip = random.choice(unused_ip)
-        logger.info('Creating VM...')
-        cloud_init_config = """
-        #cloud-config
+        try:
+            if not self._check_home_folder():
+                os.mkdir(self.home)
+            pub_key = self._get_pub_key()
+            conn, conn_nova = self.get_connection(
+                auth_url, region, project_id, user_domain_name)
+            image = conn.get_image(image)
+            flavor = conn.get_flavor(flavor)
+            network = conn.get_network(network)
+            keypair = conn.get_keypair(keypair)
+            security_group = conn.get_security_group(security_group)
+            if image == None:
+                raise MicadoException("Can't find image!")
+            if flavor == None:
+                raise MicadoException("Can't find flavor!")
+            if network == None:
+                raise MicadoException("Can't find network!")
+            if keypair == None:
+                raise MicadoException("Can't find keypair!")
+            if security_group == None:
+                raise MicadoException("Can't find security_group!")
 
-        ssh_authorized_keys:
-          - {}
+            unused_ip = self.get_unused_floating_ip(conn)
+            if len(unused_ip) < 1:
+                raise MicadoException("Can't find availabe floating IP!")
+            ip = random.choice(unused_ip)
+            logger.info('Creating VM...')
+            cloud_init_config = """
+            #cloud-config
 
-        runcmd:
-        # MTA cloud fix
-        - chage -d 2020-08-04 ubuntu
-        """.format(pub_key)
-        name_id = uuid.uuid1()
-        server = conn_nova.servers.create('MiCADO-Master-{}'.format(name_id.hex), image.id, flavor.id, security_groups=[
-            security_group.id], nics=[{"net-id": network.id}], key_name=keypair.name, userdata=cloud_init_config)
-        # server = conn.compute.create_server(
-        #     name='MiCADO-Master-{}'.format(name_id.hex), image_id=image.id, flavor_id=flavor.id,
-        #     key_name=keypair.name, userdata=cloud_init_config, timeout=300, networks=[{"uuid": network.id}], security_groups=[{"name": security_group.id}])
-        logger.info('The VM {} starting...'.format(server.id))
-        server = conn.get_server(server.id)
-        logger.info('Waiting for running state, and attach {} floating ip'.format(
-            ip.floating_ip_address))
-        conn.wait_for_server(server, auto_ip=False,
-                             ips=ip.floating_ip_address, timeout=600)
-        self._download_ansible_micado()
-        self._extract_tar()
-        self._configure_ansible_playbook(
-            ip.floating_ip_address, micado_user, micado_password)
-        self._check_port_availability(ip.floating_ip_address, 22)
-        self._remove_know_host()
-        self._get_ssh_fingerprint(ip.floating_ip_address)
-        self._check_ssh_availability(ip.floating_ip_address)
-        self._deploy_micado_master()
-        self._check_port_availability(ip.floating_ip_address, 443)
-        logger.info('MiCADO deployed!')
-        self._get_self_signed_cert(ip.floating_ip_address, server.id)
-        self._store_data(self.api_version, ip.floating_ip_address,
-                         micado_user, micado_password, server.id)
+            ssh_authorized_keys:
+            - {}
 
-    def get_api_endpoint(self):
+            runcmd:
+            # MTA cloud fix
+            - chage -d 2020-08-04 ubuntu
+            """.format(pub_key)
+            name_id = uuid.uuid1()
+            server = conn_nova.servers.create(
+                'MiCADO-Master-{}'.format(name_id.hex),
+                image.id,
+                flavor.id,
+                security_groups=[security_group.id],
+                nics=[{"net-id": network.id}],
+                key_name=keypair.name,
+                userdata=cloud_init_config)
+            # server = conn.compute.create_server(
+            #     name='MiCADO-Master-{}'.format(name_id.hex), image_id=image.id, flavor_id=flavor.id,
+            #     key_name=keypair.name, userdata=cloud_init_config, timeout=300, networks=[{"uuid": network.id}], security_groups=[{"name": security_group.id}])
+            logger.info('The VM {} starting...'.format(server.id))
+            server = conn.get_server(server.id)
+            logger.info('Waiting for running state, and attach {} floating ip'.format(
+                ip.floating_ip_address))
+            conn.wait_for_server(server, auto_ip=False,
+                                ips=ip.floating_ip_address, timeout=600)
+            self._download_ansible_micado()
+            self._extract_tar()
+            self._configure_ansible_playbook(
+                ip.floating_ip_address, micado_user, micado_password)
+            self._check_port_availability(ip.floating_ip_address, 22)
+            self._remove_know_host()
+            self._get_ssh_fingerprint(ip.floating_ip_address)
+            self._check_ssh_availability(ip.floating_ip_address)
+            self._deploy_micado_master()
+            self._check_port_availability(ip.floating_ip_address, 443)
+            logger.info('MiCADO deployed!')
+            self._get_self_signed_cert(ip.floating_ip_address, server.id)
+            self._store_data(self.api_version, ip.floating_ip_address,
+                            micado_user, micado_password, server.id)
+            return server.id
+        except MicadoException as e:
+            logger.error(f"Exception cought: {e}")
+        except Exception as e:
+            logger.error(f"Exception cought: {e}")
+            if 'server' in locals():
+                conn.delete_server(server.id)
+                logger.info(f"{server.id} VM dropped.")
+
+    def get_api_endpoint(self, id):
         """
         Return the MiCADO Master Submitter API endpoint
         """
-        # TODO: Do it properly
-        # /toscasubmitter/v1.0/
-        return "http://submitter:5050"
+        yaml = YAML()
+        content = None
+        with open(self.home+'data.yml', mode='r') as f:
+            content=yaml.load(f)
+        search = [i for i in content["masters"] if i.get(id, None)]
+        if not search:
+            pass
+        else:
+            logger.info("VM ID: {} \t API endpoint: https://{}/toscasubmitter".format(id, search[0][id]["ip"]))
+            return "https://{}/toscasubmitter".format(search[0][id]["ip"])
+        return None
 
     def get_api_version(self):
         """
@@ -125,27 +161,30 @@ class OpenStackLauncher:
         Destroy the MiCADO Master node
         """
         # TODO: Destroy MiCADO application first
-        conn, _ = self.get_connection(
-            auth_url, region, project_id, user_domain_name)
-        if conn.get_server(id) is None:
-            raise Exception("{} is not a valid VM ID!".format(id))
-        conn.delete_server(id)
-        logger.info('Dropping node {}'.format(id))
-        yaml = YAML()
-        content = None
-        with open(self.home+'data.yml', mode='r') as f:
-            content=yaml.load(f)
-        search = [i for i in content["masters"] if i.get(id, None)]
-        if not search:
-            # TODO: handle if it is not in the file
-            logger.debug("This {} ID can not find in the data file.".format(id))
-            pass
-        else:
-            logger.debug("Remove {} record".format(search))
-            content["masters"].remove(search[0])
-            with open(self.home+'data.yml', mode='w') as f:
-                yaml.dump(content, f)
-        return "Destroyed"
+        try:
+            conn, _ = self.get_connection(
+                auth_url, region, project_id, user_domain_name)
+            if conn.get_server(id) is None:
+                raise MicadoException("{} is not a valid VM ID!".format(id))
+            conn.delete_server(id)
+            logger.info('Dropping node {}'.format(id))
+            yaml = YAML()
+            content = None
+            with open(self.home+'data.yml', mode='r') as f:
+                content=yaml.load(f)
+            search = [i for i in content["masters"] if i.get(id, None)]
+            if not search:
+                # TODO: handle if it is not in the file
+                logger.debug("This {} ID can not find in the data file.".format(id))
+                pass
+            else:
+                logger.debug("Remove {} record".format(search))
+                content["masters"].remove(search[0])
+                with open(self.home+'data.yml', mode='w') as f:
+                    yaml.dump(content, f)
+            return "Destroyed"
+        except MicadoException as e:
+            logger.error(f"Exception cought: {e}")
 
     def get_credentials(self):
         with open(self.home+'credentials-cloud-api.yml', 'r') as stream:
@@ -160,9 +199,9 @@ class OpenStackLauncher:
         try:
             nova = [resource for resource in auth_data['resource']
                     if resource['type'] == 'nova'][0]
-        except Exception as e:
+        except MicadoException as e:
             logger.info("Can't find Nova resource.")
-            raise Exception("Can't find Nova resource type. Aborted")
+            raise MicadoException("Can't find Nova resource type. Aborted")
 
         username = nova['auth_data'].get('username', None)
         password = nova['auth_data'].get('password', None)
@@ -179,17 +218,17 @@ class OpenStackLauncher:
         no_credential_specified = not application_credential_id and not application_credential_secret and not username and not password
 
         if missing_app_credential or missing_password_credential:
-            raise Exception("Missing credentials!")
+            raise MicadoException("Missing credentials!")
 
         if missing_app_credential and missing_password_credential:
-            raise Exception("No credentials found.")
+            raise MicadoException("No credentials found.")
 
         if both_credential_missing:
-            raise Exception(
+            raise MicadoException(
                 "Both credential specified. Please choose one of them.")
 
         if no_credential_specified:
-            raise Exception(
+            raise MicadoException(
                 "No credential specified. Please follow the tutorial.")
 
         # Password type

@@ -26,8 +26,8 @@ class MicadoMaster(Model):
         call lower level methods to create a MiCADO master
         point to the created submitter API
         """
-        self.launcher.launch(**kwargs)
-        api_end = self.launcher.get_api_endpoint()
+        id = self.launcher.launch(**kwargs)
+        api_end = self.launcher.get_api_endpoint(id)
         api_vers = self.launcher.get_api_version()
 
         self.api = SubmitterClient(endpoint=api_end, version=api_vers)
