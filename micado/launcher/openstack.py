@@ -144,7 +144,7 @@ class OpenStackLauncher:
             content=yaml.load(f)
         search = [i for i in content["masters"] if i.get(id, None)]
         if not search:
-            pass
+            raise Exception("Can't find api-endpoint!")
         else:
             logger.info("VM ID: {} \t API endpoint: https://{}/toscasubmitter".format(id, search[0][id]["ip"]))
             return "https://{}/toscasubmitter".format(search[0][id]["ip"])
@@ -168,6 +168,8 @@ class OpenStackLauncher:
                 raise MicadoException("{} is not a valid VM ID!".format(id))
             conn.delete_server(id)
             logger.info('Dropping node {}'.format(id))
+            logger.info("remove {}-ssl.pem".format(self.home+id))
+            os.remove(self.home+id+'-ssl.pem')
             yaml = YAML()
             content = None
             with open(self.home+'data.yml', mode='r') as f:
