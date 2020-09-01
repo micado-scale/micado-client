@@ -34,9 +34,9 @@ class MicadoClient:
 
         >>> import micado
         >>> client = micado.MicadoClient(launcher="libcloud")
-        >>> client.cluster.create()
+        >>> client.master.create()
         >>> client.applications.list()
-        >>> client.cluster.destroy()
+        >>> client.master.destroy()
 
     Usage without a launcher:
 
@@ -95,6 +95,7 @@ class MicadoClient:
     def applications(self):
         return Applications(client=self)
 
+    @property
     def master(self):
         if not self.launcher:
             raise MicadoException("No launcher defined")

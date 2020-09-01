@@ -9,6 +9,9 @@ from ..api.client import SubmitterClient
 
 class MicadoMaster(Model):
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     @property
     def launcher(self):
         return self.client.launcher
@@ -26,8 +29,8 @@ class MicadoMaster(Model):
         call lower level methods to create a MiCADO master
         point to the created submitter API
         """
-        id = self.launcher.launch(**kwargs)
-        api_end = self.launcher.get_api_endpoint(id)
+        self.id = self.launcher.launch(**kwargs)
+        api_end = self.launcher.get_api_endpoint(self.id)
         api_vers = self.launcher.get_api_version()
 
         self.api = SubmitterClient(endpoint=api_end, version=api_vers)
