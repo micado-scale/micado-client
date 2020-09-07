@@ -10,15 +10,17 @@ from .api.client import SubmitterClient
 
 from .launcher.libcloud import LibCloudLauncher
 from .launcher.occopus import OccopusLauncher
+from .launcher.openstack import OpenStackLauncher
 
 from .models.application import Applications
-from .models.cluster import MicadoCluster
+from .models.master import MicadoMaster
 
 from .exceptions import MicadoException
 
 LAUNCHERS = {
     "libcloud": LibCloudLauncher,
     "occopus": OccopusLauncher,
+    "openstack": OpenStackLauncher,
 }
 
 
@@ -32,9 +34,9 @@ class MicadoClient:
 
         >>> import micado
         >>> client = micado.MicadoClient(launcher="libcloud")
-        >>> client.cluster.create()
+        >>> client.master.create()
         >>> client.applications.list()
-        >>> client.cluster.destroy()
+        >>> client.master.destroy()
 
     Usage without a launcher:
 
@@ -94,7 +96,7 @@ class MicadoClient:
         return Applications(client=self)
 
     @property
-    def cluster(self):
+    def master(self):
         if not self.launcher:
             raise MicadoException("No launcher defined")
-        return MicadoCluster(client=self)
+        return MicadoMaster(client=self)

@@ -10,13 +10,15 @@ class Model:
     Generic class for models of objects in MiCADO
     """
 
-    def __init__(self, id, info, client, resource):
+    def __init__(self, client, id=None, info=None, resource=None):
+        self.client = client
         self.id = id
         self.info = info or {}
-        self.client = client
         self.resource = resource
 
     def reload(self):
+        if not self.resource:
+            pass
         updated = self.resource.get(self.id)
         self.info = updated.info
 
