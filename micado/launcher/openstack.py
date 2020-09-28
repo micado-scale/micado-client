@@ -24,8 +24,8 @@ from openstack import connection
 
 from ..exceptions import MicadoException
 
-"""
-Low-level methods for handling a MiCADO master with OpenStackSDK
+"""Low-level methods for handling a MiCADO master with OpenStackSDK
+
 """
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -42,8 +42,8 @@ logger.addHandler(fh)
 
 
 class OpenStackLauncher:
-    """
-    For launching a MiCADO Master with OpenStackSDK
+    """For launching a MiCADO Master with OpenStackSDK
+
     """
     home = str(Path.home())+'/.micado-cli/'
     micado_version = '0.9.0'
@@ -53,9 +53,32 @@ class OpenStackLauncher:
 
     def launch(self, auth_url, image, flavor, network, keypair, security_group='all', region=None,
                user_domain_name='Default', project_id=None, micado_user='admin', micado_password='admin'):
+        """Create the MiCADO Master node
+
+        Args:
+            auth_url (string): Authentication URL for the NOVA
+                resource.
+            image (string): Name or ID of the image resource.
+            flavor (string): Name or ID of the flavor resource.
+            network (string): Name or ID of the network resource.
+            keypair (string): Name or ID of the keypair resource.
+            security_group (string, optional): name or ID of the
+                security_group resource. Defaults to 'all'.
+            region (string, optional): Name of the region resource.
+                Defaults to None.
+            user_domain_name (string, optional): Define the user_domain_name.
+                Defaults to 'Default'
+            project_id (string, optional): ID of the project resource.
+                Defaults to None.
+            micado_user (string, optional): MiCADO username.
+                Defaults to admin.
+            micado_password (string, optional): MiCADO password.
+                Defaults to admin.
+
+        Raises:
+            MicadoException: Missing or incorrect data.
         """
-        Create the MiCADO Master node
-        """
+
         try:
             if not self._check_home_folder():
                 os.mkdir(self.home)
@@ -135,8 +158,16 @@ class OpenStackLauncher:
                 logger.info(f"{server.id} VM dropped.")
 
     def get_api_endpoint(self, id):
-        """
-        Return the MiCADO Master Submitter API endpoint
+        """Return the MiCADO Master Submitter API endpoint
+
+        Args:
+            id (string): MiCADO master UUID
+
+        Raises:
+            Exception: If UUID not found
+
+        Returns:
+            string: MiCADO Master Submitter API endpoint
         """
         yaml = YAML()
         content = None
@@ -152,15 +183,31 @@ class OpenStackLauncher:
 
     def get_api_version(self):
         """
-        Return the MiCADO Master Submitter API version
+        Return the MiCADO Master Submitter API version. Only v2.0 supported.
+
+        Returns:
+            string: MiCADO Master Submitter API version
         """
+
         return "v2.0"
 
     def delete(self, id, auth_url, region=None, user_domain_name='Default', project_id=None):
+        """Destroy the existing MiCADO master VM.
+
+        Args:
+            id (string): The MiCADO master UUID.
+            auth_url (string): Authentication URL for the NOVA
+                resource.
+            region (string, optional): Name of the region resource.
+                Defaults to None.
+            user_domain_name (string, optional): Define the user_domain_name.
+                Defaults to 'Default'
+            project_id (string, optional): ID of the project resource.
+                Defaults to None.
+
+        Raises:
+            MicadoException: Missing or incorrect data.
         """
-        Destroy the MiCADO Master node
-        """
-        # TODO: Destroy MiCADO application first
         try:
             conn, _ = self.get_connection(
                 auth_url, region, project_id, user_domain_name)
@@ -189,6 +236,14 @@ class OpenStackLauncher:
             logger.error(f"Exception cought: {e}")
 
     def get_credentials(self):
+        """Read credential from file.
+
+        Raises:
+            MicadoException: Missing or incorrect data.
+
+        Returns:
+            tuple: return authentication data
+        """
         with open(self.home+'credentials-cloud-api.yml', 'r') as stream:
             yaml = YAML()
             auth_data = yaml.load(stream)
@@ -243,9 +298,35 @@ class OpenStackLauncher:
         return auth_data
 
     def get_unused_floating_ip(self, conn):
+        """Return unused ip.
+
+        Args:
+            conn ([type]): OpenStack connection
+
+        Returns:
+            dict: Unused IP
+        """
         return [addr for addr in conn.list_floating_ips() if addr.attached == False]
 
     def get_connection(self, auth_url, region, project_id, user_domain_name):
+        """Create OpenStack connection.
+
+        Args:
+            auth_url (string): Authentication URL for the NOVA
+                resource.
+            region (string, optional): Name of the region resource.
+                Defaults to None.
+            project_id (string, optional): ID of the project resource.
+                Defaults to None.
+            user_domain_name (string, optional): Define the user_domain_name.
+                Defaults to 'Default'
+
+        Raises:
+            Exception: Project ID missing
+
+        Returns:
+            tuple: OpenStackSDK connection, and nova_client Connection
+        """
         auth_data = self.get_credentials()
         if auth_data[2]:
             app_cred_id = auth_data[0]
@@ -267,12 +348,27 @@ class OpenStackLauncher:
             identity_interface='public'), nova_client.Client(2, session=sess, region_name=region)
 
     def _check_home_folder(self):
+        """Check if homefolder exist
+
+        Returns:
+            boolean: True if it is exist
+        """
         return os.path.isdir(self.home)
 
     def _check_ssh_key_existance(self):
+        """Check if SSH config key exist.
+
+        Returns:
+            boolean: True if it is exist
+        """
         return os.path.isfile(self.home + 'micado_cli_config_priv_key') and os.path.isfile(self.home + 'micado_cli_config_pub_key')
 
     def _get_pub_key(self):
+        """Get public config key from home location.
+
+        Returns:
+            string: Public config key
+        """
         if not self._check_ssh_key_existance():
             self._create_ssh_keys()
         with open(self.home + 'micado_cli_config_pub_key', 'r') as f:
@@ -280,6 +376,9 @@ class OpenStackLauncher:
         return pub_key
 
     def _create_ssh_keys(self):
+        """Create SSH config key, and set the correct permission.
+
+        """
         key = ECC.generate(curve='P-521')
         with open(self.home + 'micado_cli_config_priv_key', 'wt') as f:
             f.write(key.export_key(format='PEM'))
@@ -289,6 +388,8 @@ class OpenStackLauncher:
         os.chmod(self.home + 'micado_cli_config_pub_key',  0o666)
 
     def _download_ansible_micado(self):
+        """Download ansible_micado from GitHub and write down to home directory.
+        """
         logger.info('Download Ansible MiCADO')
         # url = 'https://github.com/micado-scale/ansible-micado/releases/download/v' + \
         #     self.micado_version+'/ansible-micado-'+self.micado_version+'.tar.gz'
@@ -299,6 +400,8 @@ class OpenStackLauncher:
             f.write(r.content)
 
     def _extract_tar(self):
+        """Extract tar
+        """
         logger.info('Extract Ansible MiCADO')
         tarfile_location = self.home+'ansible-micado-'+self.micado_version+'.tar.gz'
         tar_file = tarfile.open(tarfile_location)
@@ -307,6 +410,13 @@ class OpenStackLauncher:
         os.remove(tarfile_location)
 
     def _configure_ansible_playbook(self, ip, micado_user, micado_password):
+        """Configure ansible-micado.
+
+        Args:
+            ip (string): MiCADO master IP
+            micado_user (string): User defined MiCADO user
+            micado_password ([type]): User defined MiCADO password
+        """
         logger.info('Copy ansible sample files')
         copyfile(self.ansible_folder+'sample-credentials-micado.yml',
                  self.ansible_folder+'credentials-micado.yml')
@@ -316,6 +426,11 @@ class OpenStackLauncher:
         self._create_micado_credential(micado_user, micado_password)
 
     def _create_micado_hostfile(self, ip):
+        """Create Ansible hostfile.
+
+        Args:
+            ip (string): MiCADO master IP
+        """
         logger.info('Create and configure host file')
         with open(self.ansible_folder+'sample-hosts.yml', 'r') as f:
             yaml = YAML()
@@ -328,6 +443,12 @@ class OpenStackLauncher:
             yaml.dump(host_dict, f)
 
     def _create_micado_credential(self, micado_user, micado_password):
+        """Create MiCADO credential file.
+
+        Args:
+            micado_user (string): User defined MiCADO user
+            micado_password ([type]): User defined MiCADO password
+        """
         logger.info('Create and configure credential-micado-file file')
         with open(self.ansible_folder+'sample-credentials-micado.yml', 'r') as f:
             yaml = YAML()
@@ -338,6 +459,15 @@ class OpenStackLauncher:
             yaml.dump(credential_dict, f)
 
     def _check_port_availability(self, ip, port):
+        """Check the given port availability.
+
+        Args:
+            ip (string): IP address of the VM
+            port (string): Port number
+
+        Raises:
+            Exception: When timeout reached
+        """
         logger.info('Check {} port availability'.format(port))
         attempts = 0
         sleep_time = 2
@@ -362,18 +492,27 @@ class OpenStackLauncher:
             logger.info('{} port is available.'.format(port))
 
     def _deploy_micado_master(self):
+        """Deploy MiCADO master services via ansible
+        """
         logger.info('Deploy MiCADO master')
         subprocess.run(["ansible-playbook", "-i", "hosts.yml", "micado-master.yml"],
                        cwd=self.ansible_folder,
                        check=True)
 
     def get_ssh_key_path(self):
+        """Get SSH key path
+
+        Returns:
+            string: location of the key
+        """
         if self._check_ssh_key_existance():
             return "You can find the configuration keys under ~/.micado-cli/micado_cli_config_priv_key and ~/.micado-cli/micado_cli_config_pub_key"
         else:
             return "The key is not generated yet. Deploy the VM first"
 
     def _remove_know_host(self):
+        """Remove known_host file
+        """
         known_hosts = str(Path.home())+'/.ssh/known_hosts'
         with open(known_hosts) as file:
             all_lines = file.readlines()
@@ -382,6 +521,11 @@ class OpenStackLauncher:
         os.remove(known_hosts)
 
     def _get_ssh_fingerprint(self, ip):
+        """Get SSH fingerprint
+
+        Args:
+            ip (string): Target IP address
+        """
         known_hosts = str(Path.home())+'/.ssh/known_hosts'
         result = subprocess.run(["ssh-keyscan", "-H", ip],
                                 shell=False,
@@ -393,6 +537,14 @@ class OpenStackLauncher:
             f.writelines(result.stdout.decode())
 
     def _check_ssh_availability(self, ip):
+        """Check SSH availability
+
+        Args:
+            ip (string): Target IP
+
+        Raises:
+            Exception: When timeout reached
+        """
         attempts = 0
         sleep_time = 2
         max_attempts = 100
@@ -418,6 +570,12 @@ class OpenStackLauncher:
             logger.info('SSH is available.')
 
     def _get_self_signed_cert(self, ip, id):
+        """Get MiCADO master self signed SSL
+
+        Args:
+            ip (string): Target IP
+            id (string): UUID of the VM
+        """
         logger.info('Get MiCADO self_signed cert')
         subprocess.run(["scp", 'ubuntu@'+ip+':/var/lib/micado/zorp/config/ssl.pem', self.home+id+'-ssl.pem'],
                        shell=False,
@@ -427,6 +585,15 @@ class OpenStackLauncher:
                        check=True)
 
     def _store_data(self, api_version, ip, micado_user, micado_password, server_id):
+        """Persist deployment data
+
+        Args:
+            api_version (string): Submitter API version
+            ip (string): Master VM IP address
+            micado_user (string): User defined MiCADO user
+            micado_password (string): User defined MiCADO password
+            server_id (string): MiCADO master VM ID
+        """
         # check if file does exist
         logger.debug("Save data")
         file_location = self.home+'data.yml'

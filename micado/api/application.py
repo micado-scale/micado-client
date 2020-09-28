@@ -46,7 +46,7 @@ class ApplicationMixin:
         """Creates/deploys an application in MiCADO
 
         Args:
-            app_id (string, optional): The ID of the application to deploy. 
+            app_id (string, optional): The ID of the application to deploy.
                 Defaults to None.
             adt (dict, optional): YAML dict of the application description
                 template. Required if no URL given. Defaults to None.
