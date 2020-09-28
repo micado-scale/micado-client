@@ -8,7 +8,6 @@ import os
 
 from .api.client import SubmitterClient
 
-from .launcher.libcloud import LibCloudLauncher
 from .launcher.occopus import OccopusLauncher
 from .launcher.openstack import OpenStackLauncher
 
@@ -18,15 +17,13 @@ from .models.master import MicadoMaster
 from .exceptions import MicadoException
 
 LAUNCHERS = {
-    "libcloud": LibCloudLauncher,
     "occopus": OccopusLauncher,
     "openstack": OpenStackLauncher,
 }
 
 
 class MicadoClient:
-    """
-    The MiCADO Client
+    """The MiCADO Client
 
     Builds and communicates with a MiCADO Master node
 
@@ -74,8 +71,7 @@ class MicadoClient:
 
     @classmethod
     def from_master(cls):
-        """
-        Usage:
+        """Usage:
             >>> from micado import MicadoClient
             >>> client = MicadoClient.from_master() if ENV below is set
         """
