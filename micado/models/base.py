@@ -6,8 +6,8 @@ Base class for models and resource collections in MiCADO
 
 
 class Model:
-    """
-    Generic class for models of objects in MiCADO
+    """Generic class for models of objects in MiCADO
+
     """
 
     def __init__(self, client, id=None, info=None, resource=None):
@@ -24,8 +24,8 @@ class Model:
 
 
 class Resource:
-    """
-    Generic class for collections of resources in MiCADO
+    """Generic class for collections of resources in MiCADO
+
     """
 
     model = None

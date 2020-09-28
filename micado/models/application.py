@@ -1,6 +1,4 @@
-"""
-
-Module for managing and representing applications in MiCADO 
+"""Module for managing and representing applications in MiCADO
 
 """
 

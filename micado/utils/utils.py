@@ -3,8 +3,8 @@ import functools
 from ..exceptions import MicadoException
 
 def check_launch(func):
-    """
-    Check launcher has created and connected to API
+    """Check launcher has created and connected to API
+
     """
     @functools.wraps(func)
     def inner(self, *args, **kwargs):

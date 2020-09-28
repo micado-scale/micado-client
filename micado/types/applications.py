@@ -3,7 +3,7 @@ import ast
 
 class ApplicationInfo(dict):
     def __init__(self, adt=None, url=None, params={}, dryrun=False):
-        """ Creates required JSON parameters for create_app
+        """Creates required JSON parameters for create_app
 
         Args:
             adt (dict, optional): YAML dict of Application Description
