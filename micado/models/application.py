@@ -38,6 +38,14 @@ class Applications(Resource):
         Args:
             app_id (string): Application ID to fetch. Required
 
+        Usage:
+
+            >>> my_app = client.applications.get("stresstest")
+            >>> my_app.id
+            "stresstest"
+            >>> my_app.adaptors
+            {'KubernetesAdaptor': 'Executed', 'OccopusAdaptor': 'Skipped'}
+
         Returns:
             Application object: Relevant information for a single application
         """
@@ -45,6 +53,12 @@ class Applications(Resource):
 
     def list(self):
         """Retrieves the available list of applications in MiCADO
+
+        Usage:
+
+            >>> running_apps = client.applications.list()
+            >>> [app.id for app in running_apps]
+            ["stresstest"]
 
         Returns:
             list of Application objects: Relevant info for all applications
@@ -65,6 +79,12 @@ class Applications(Resource):
             dryrun (bool, optional): Flag to skip execution of components.
                 Defaults to False.
 
+        Usage:
+
+            >>> client.applications.create(app_id="stresstest",
+                                           url="example.com/repo/adt.yaml")
+            "stresstest created successfully"
+
         Returns:
             dict: ID and status of deployment
         """
@@ -77,8 +97,12 @@ class Applications(Resource):
         Args:
             app_id (string): Application ID to delete
 
+        Usage:
+
+            >>> client.applications.delete("stresstest")
+            "stresstest deleted successfully"
+
         Returns:
             dict: ID and status of deletion
         """
         return self.client.api.delete_app(app_id)
-
