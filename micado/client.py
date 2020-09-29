@@ -54,34 +54,34 @@ class MicadoClient:
         ... )
         >>> client.applications.list()
 
-        Args:
-            auth_url (string): Authentication URL for the NOVA
-                resource.
-            image (string): Name or ID of the image resource.
-            flavor (string): Name or ID of the flavor resource.
-            network (string): Name or ID of the network resource.
-            keypair (string): Name or ID of the keypair resource.
-            security_group (string, optional): name or ID of the
-                security_group resource. Defaults to 'all'.
-            region (string, optional): Name of the region resource.
-                Defaults to None.
-            user_domain_name (string, optional): Define the user_domain_name.
-                Defaults to 'Default'
-            project_id (string, optional): ID of the project resource.
-                Defaults to None.
-            micado_user (string, optional): MiCADO username.
-                Defaults to admin.
-            micado_password (string, optional): MiCADO password.
-                Defaults to admin.
-            endpoint (string): Full URL to API endpoint (omit version).
-                Required.
-            version (string, optional): MiCADO API Version (minimum v2.0).
-                Defaults to 'v2.0'.
-            verify (bool, optional): Verify certificate on the client-side.
-                OR (str): Path to cert bundle (.pem) to verfiy against.
-                Defaults to True.
-            auth (tuple, optional): Basic auth credentials (<user>, <pass>).
-                Defaults to None.
+    Args:
+        auth_url (string): Authentication URL for the NOVA
+            resource.
+        image (string): Name or ID of the image resource.
+        flavor (string): Name or ID of the flavor resource.
+        network (string): Name or ID of the network resource.
+        keypair (string): Name or ID of the keypair resource.
+        security_group (string, optional): name or ID of the
+            security_group resource. Defaults to 'all'.
+        region (string, optional): Name of the region resource.
+            Defaults to None.
+        user_domain_name (string, optional): Define the user_domain_name.
+            Defaults to 'Default'
+        project_id (string, optional): ID of the project resource.
+            Defaults to None.
+        micado_user (string, optional): MiCADO username.
+            Defaults to admin.
+        micado_password (string, optional): MiCADO password.
+            Defaults to admin.
+        endpoint (string): Full URL to API endpoint (omit version).
+            Required.
+        version (string, optional): MiCADO API Version (minimum v2.0).
+            Defaults to 'v2.0'.
+        verify (bool, optional): Verify certificate on the client-side.
+            OR (str): Path to cert bundle (.pem) to verfiy against.
+            Defaults to True.
+        auth (tuple, optional): Basic auth credentials (<user>, <pass>).
+            Defaults to None.
     """
 
     def __init__(self, *args, **kwargs):
