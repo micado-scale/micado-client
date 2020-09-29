@@ -1,14 +1,6 @@
 """
 
-Low-level methods for ADTs:
-
-applications()
-validate()
-translate()
-submit()
-diff()
-delete()
-clean()
+Low-level methods for managing applications in MiCADO
 
 """
 from ..types import ApplicationInfo

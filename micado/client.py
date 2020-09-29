@@ -30,7 +30,7 @@ class MicadoClient:
     Usage with a launcher:
 
         >>> import micado
-        >>> client = micado.MicadoClient(launcher="libcloud")
+        >>> client = micado.MicadoClient(launcher="openstack")
         >>> client.master.create()
         >>> client.applications.list()
         >>> client.master.destroy()
@@ -72,8 +72,11 @@ class MicadoClient:
     @classmethod
     def from_master(cls):
         """Usage:
+            Ensure MICADO_API_ENDPOINT and MICADO_API_VERSION
+            environment variables are set, then:
+
             >>> from micado import MicadoClient
-            >>> client = MicadoClient.from_master() if ENV below is set
+            >>> client = MicadoClient.from_master()
         """
         try:
             submitter_endpoint = os.environ["MICADO_API_ENDPOINT"]
