@@ -147,7 +147,7 @@ class OpenStackLauncher:
             logger.info('MiCADO deployed!')
             self._get_self_signed_cert(ip.floating_ip_address, server.id)
             self._store_data(self.api_version, ip.floating_ip_address,
-                            micado_user, micado_password, server.id)
+                            micado_user, micado_password, server.id, auth_url, region, project_id, user_domain_name)
             return server.id
         except MicadoException as e:
             logger.error(f"Exception cought: {e}")
@@ -191,32 +191,20 @@ class OpenStackLauncher:
 
         return "v2.0"
 
-    def delete(self, id, auth_url, region=None, user_domain_name='Default', project_id=None):
+    def delete(self, id):
         """Destroy the existing MiCADO master VM.
 
         Args:
             id (string): The MiCADO master UUID.
-            auth_url (string): Authentication URL for the NOVA
-                resource.
-            region (string, optional): Name of the region resource.
-                Defaults to None.
-            user_domain_name (string, optional): Define the user_domain_name.
-                Defaults to 'Default'
-            project_id (string, optional): ID of the project resource.
-                Defaults to None.
 
         Raises:
             MicadoException: Missing or incorrect data.
         """
         try:
-            conn, _ = self.get_connection(
-                auth_url, region, project_id, user_domain_name)
-            if conn.get_server(id) is None:
-                raise MicadoException("{} is not a valid VM ID!".format(id))
-            conn.delete_server(id)
-            logger.info('Dropping node {}'.format(id))
-            logger.info("remove {}-ssl.pem".format(self.home+id))
-            os.remove(self.home+id+'-ssl.pem')
+            auth_url = None
+            region_name = None
+            project_id = None
+            user_domain_name = None
             yaml = YAML()
             content = None
             with open(self.home+'data.yml', mode='r') as f:
@@ -228,9 +216,21 @@ class OpenStackLauncher:
                 pass
             else:
                 logger.debug("Remove {} record".format(search))
+                auth_url = search[0][id]["auth_url"]
+                region_name = search[0][id]["region_name"]
+                project_id = search[0][id]["project_id"]
+                user_domain_name = search[0][id]["user_domain_name"]
                 content["masters"].remove(search[0])
                 with open(self.home+'data.yml', mode='w') as f:
                     yaml.dump(content, f)
+            conn, _ = self.get_connection(
+                auth_url, region_name, project_id, user_domain_name)
+            if conn.get_server(id) is None:
+                raise MicadoException("{} is not a valid VM ID!".format(id))
+            conn.delete_server(id)
+            logger.info('Dropping node {}'.format(id))
+            logger.info("remove {}-ssl.pem".format(self.home+id))
+            os.remove(self.home+id+'-ssl.pem')
             return "Destroyed"
         except MicadoException as e:
             logger.error(f"Exception cought: {e}")
@@ -308,13 +308,13 @@ class OpenStackLauncher:
         """
         return [addr for addr in conn.list_floating_ips() if addr.attached == False]
 
-    def get_connection(self, auth_url, region, project_id, user_domain_name):
+    def get_connection(self, auth_url, region_name, project_id, user_domain_name):
         """Create OpenStack connection.
 
         Args:
             auth_url (string): Authentication URL for the NOVA
                 resource.
-            region (string, optional): Name of the region resource.
+            region_name (string, optional): Name of the region resource.
                 Defaults to None.
             project_id (string, optional): ID of the project resource.
                 Defaults to None.
@@ -342,10 +342,10 @@ class OpenStackLauncher:
                                user_domain_name=user_domain_name, project_id=project_id)
         sess = session.Session(auth=auth)
         return connection.Connection(
-            region_name=region,
+            region_name=region_name,
             session=sess,
             compute_api_version='2',
-            identity_interface='public'), nova_client.Client(2, session=sess, region_name=region)
+            identity_interface='public'), nova_client.Client(2, session=sess, region_name=region_name)
 
     def _check_home_folder(self):
         """Check if homefolder exist
@@ -477,7 +477,7 @@ class OpenStackLauncher:
             ip, port, sleep_time,))
         while attempts < max_attempts and result != 0:
             logger.debug('attempts:{}/{} Still no answer. Try again {} second later'.format(
-                attempts, max_attempts, sleep_time))
+                attempts+1, max_attempts, sleep_time))
             time.sleep(sleep_time)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             socket.setdefaulttimeout(1)
@@ -551,7 +551,7 @@ class OpenStackLauncher:
         err = "default"
         while attempts < max_attempts and err != "":
             logger.debug('attempts:{}/{} Cloud-init still running. Try again {} second later'.format(
-                attempts, max_attempts, sleep_time))
+                attempts+1, max_attempts, sleep_time))
             time.sleep(sleep_time)
             result = subprocess.run(["ssh", "-i", self.home+'micado_cli_config_priv_key', "ubuntu@"+ip, "ls -lah"],
                                     shell=False,
@@ -584,7 +584,7 @@ class OpenStackLauncher:
                        stderr=subprocess.PIPE,
                        check=True)
 
-    def _store_data(self, api_version, ip, micado_user, micado_password, server_id):
+    def _store_data(self, api_version, ip, micado_user, micado_password, server_id, auth_url, region_name, project_id, user_domain_name):
         """Persist deployment data
 
         Args:
@@ -593,6 +593,14 @@ class OpenStackLauncher:
             micado_user (string): User defined MiCADO user
             micado_password (string): User defined MiCADO password
             server_id (string): MiCADO master VM ID
+            auth_url (string): Authentication URL for the NOVA
+                resource.
+            region (string, optional): Name of the region resource.
+                Defaults to None.
+            project_id (string, optional): ID of the project resource.
+                Defaults to None.
+            user_domain_name (string, optional): Define the user_domain_name.
+                Defaults to 'Default'
         """
         # check if file does exist
         logger.debug("Save data")
@@ -602,9 +610,19 @@ class OpenStackLauncher:
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
         content = None
-
-        item = [{server_id: {"api_version": api_version, "cert_path": cert_path, "endpoint": endpoint,
-                             "ip": ip, "micado_user": micado_user, "micado_password": micado_password}}]
+        region_name = region_name
+        if region_name is None:
+            region_name = ''
+        item = [{server_id: {"api_version": api_version,
+                            "cert_path": cert_path,
+                            "endpoint": endpoint,
+                            "ip": ip,
+                            "micado_user": micado_user,
+                            "micado_password": micado_password,
+                            "auth_url":auth_url,
+                            "region_name": region_name,
+                            "project_id":project_id,
+                            "user_domain_name":user_domain_name}}]
         if os.path.isfile(file_location):
             logger.debug("Data file exist.")
             with open(file_location) as f:
@@ -612,8 +630,14 @@ class OpenStackLauncher:
                 content["masters"] += item
         else:
             logger.debug("Data file does not exist. Creating new file")
-            content = {"masters": [{server_id: {"api_version": api_version, "cert_path": cert_path, "endpoint": endpoint,
-                                                "ip": ip, "micado_user": micado_user, "micado_password": micado_password}}]}
-
+            content = {"masters": [{server_id: {"api_version": api_version,
+                                                "cert_path": cert_path, "endpoint": endpoint,
+                                                "ip": ip,
+                                                "micado_user": micado_user,
+                                                "micado_password": micado_password,
+                                                "auth_url":auth_url,
+                                                "region_name": region_name,
+                                                "project_id":project_id,
+                                                "user_domain_name":user_domain_name}}]}
         with open(self.home+'data.yml', "w") as f:
             yaml.dump(content, f)

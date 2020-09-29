@@ -52,10 +52,10 @@ class MicadoMaster(Model):
         self.id = self.launcher.launch(**kwargs)
         api_end = self.launcher.get_api_endpoint(self.id)
         api_vers = self.launcher.get_api_version()
-
         self.api = SubmitterClient(endpoint=api_end, version=api_vers)
+        return self.id
 
-    def destroy(self, **kwargs):
+    def destroy(self, id):
         """Destroy running applications and the existing MiCADO master VM.
 
         Args:
@@ -71,4 +71,4 @@ class MicadoMaster(Model):
         """
         self.api._destroy()
         self.api = None
-        self.launcher.delete(**kwargs)
+        self.launcher.delete(id)
