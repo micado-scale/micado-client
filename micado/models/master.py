@@ -56,7 +56,7 @@ class MicadoMaster(Model):
         self.api = SubmitterClient(endpoint=api_end, version=api_vers)
 
     def destroy(self, **kwargs):
-        """Destroy the existing MiCADO master VM.
+        """Destroy running applications and the existing MiCADO master VM.
 
         Args:
             id (string): The MiCADO master UUID.
@@ -69,6 +69,6 @@ class MicadoMaster(Model):
             project_id (string, optional): ID of the project resource.
                 Defaults to None.
         """
-
+        self.api._destroy()
         self.api = None
         self.launcher.delete(**kwargs)

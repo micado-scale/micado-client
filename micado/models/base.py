@@ -43,4 +43,4 @@ class Resource:
         raise NotImplementedError
 
     def _make_model(self, id, info):
-        return self.model(id, info, self.client, self)
+        return self.model(self.client, id, info, self)
