@@ -10,7 +10,20 @@ from .application import ApplicationMixin
 
 
 class SubmitterClient(requests.Session, ApplicationMixin):
-    """Low-level MiCADO client
+    """Low-level MiCADO client, prefer use of `micado.client`
+
+    Args:
+        endpoint (string): The endpoint of the running submitter.
+        version (string, optional): API version. Defaults to 'v2.0'.
+        verify (bool or string, optional): Whether to verify the
+            connection with certificate on the client side. For
+            self-signed certificates, this parameter can be a string
+            path to the .pem certificate. Defaults to True.
+        auth (tuple, optional): Basic auth username and password.
+            Defaults to None.
+
+    Raises:
+        TypeError: If auth is in poorly formatted
 
     """
 
