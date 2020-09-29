@@ -80,5 +80,16 @@ class ApplicationMixin:
         url = self._url(f"/applications/{app_id}/")
         json_data = {"force": force}
         resp = self.delete(url, json=json_data)
-        resp.raise_for_status()
+        if not force:
+            resp.raise_for_status()
         return resp.json()
+
+    def _destroy(self):
+        """Deletes all application in MiCADO 
+        
+        This should normally only be called by a launcher that
+        is ready to destroy its master node
+        """
+        app_ids = self.applications()
+        for app in app_ids:
+            self.delete_app(app, force=True)
