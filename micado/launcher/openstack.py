@@ -30,15 +30,15 @@ from ..exceptions import MicadoException
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-fh = logging.handlers.RotatingFileHandler(
-    filename=str(Path.home())+'/.micado-cli/micado-cli.log', mode='a', maxBytes=52428800, backupCount=3)
+#fh = logging.handlers.RotatingFileHandler(
+#    filename=str(Path.home())+'/.micado-cli/micado-cli.log', mode='a', maxBytes=52428800, backupCount=3)
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s : %(message)s')
 ch.setFormatter(formatter)
-fh.setFormatter(formatter)
+#fh.setFormatter(formatter)
 logger.addHandler(ch)
-logger.addHandler(fh)
+#logger.addHandler(fh)
 
 
 class OpenStackLauncher:
