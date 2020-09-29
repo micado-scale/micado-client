@@ -60,14 +60,6 @@ class MicadoMaster(Model):
 
         Args:
             id (string): The MiCADO master UUID.
-            auth_url (string): Authentication URL for the NOVA
-                resource.
-            region (string, optional): Name of the region resource.
-                Defaults to None.
-            user_domain_name (string, optional): Define the user_domain_name.
-                Defaults to 'Default'
-            project_id (string, optional): ID of the project resource.
-                Defaults to None.
         """
         self.api._destroy()
         self.api = None
