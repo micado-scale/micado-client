@@ -32,14 +32,14 @@ class MicadoClient:
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="openstack")
         >>> ID = client.master.create(
-                auth_url='yourendpoint',
-                project_id='project_id',
-                image='image_name or image_id',
-                flavor='flavor_name or flavor_id',
-                network='network_name or network_id',
-                keypair='keypair_name or keypair_id',
-                security_group='security_group_name or security_group_id'
-            )
+        ...     auth_url='yourendpoint',
+        ...     project_id='project_id',
+        ...     image='image_name or image_id',
+        ...     flavor='flavor_name or flavor_id',
+        ...     network='network_name or network_id',
+        ...     keypair='keypair_name or keypair_id',
+        ...     security_group='security_group_name or security_group_id'
+        ... )
         >>> client.applications.list()
         >>> client.master.destroy(ID)
 
@@ -73,8 +73,6 @@ class MicadoClient:
                 Defaults to admin.
             micado_password (string, optional): MiCADO password.
                 Defaults to admin.
-
-
             endpoint (string): Full URL to API endpoint (omit version).
                 Required.
             version (string, optional): MiCADO API Version (minimum v2.0).

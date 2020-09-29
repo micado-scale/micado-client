@@ -47,6 +47,21 @@ class MicadoMaster(Model):
             micado_password (string, optional): MiCADO password.
                 Defaults to admin.
 
+        Usage:
+
+            >>> client.master.create(
+            ...     auth_url='yourendpoint',
+            ...     project_id='project_id',
+            ...     image='image_name or image_id',
+            ...     flavor='flavor_name or flavor_id',
+            ...     network='network_name or network_id',
+            ...     keypair='keypair_name or keypair_id',
+            ...     security_group='security_group_name or security_group_id'
+            ... )
+
+        Returns:
+            string: ID of MiCADO master
+
         """
 
         self.id = self.launcher.launch(**kwargs)
@@ -59,7 +74,12 @@ class MicadoMaster(Model):
         """Destroy running applications and the existing MiCADO master VM.
 
         Args:
-            id (string): The MiCADO master UUID.
+            id (string): The MiCADO master ID.
+
+        Usage:
+
+            >>> client.master.destroy(ID)
+
         """
         self.api._destroy()
         self.api = None
