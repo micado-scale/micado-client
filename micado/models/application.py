@@ -72,7 +72,7 @@ class Applications(Resource):
         Args:
             app_id (string, optional): Application ID. Generated if None.
             adt (dict, optional): YAML dict of Application Description
-                Template. Required is URL is empty. Defaults to None.
+                Template. Required if URL is empty. Defaults to None.
             url (string, optional): URL of YAML ADT. Required if ADT is empty.
                 Defaults to None.
             params (dict, optional): TOSCA input parameters. Defaults to {}.

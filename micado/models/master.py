@@ -52,23 +52,15 @@ class MicadoMaster(Model):
         self.id = self.launcher.launch(**kwargs)
         api_end = self.launcher.get_api_endpoint(self.id)
         api_vers = self.launcher.get_api_version()
-
         self.api = SubmitterClient(endpoint=api_end, version=api_vers)
+        return self.id
 
-    def destroy(self, **kwargs):
+    def destroy(self, id):
         """Destroy running applications and the existing MiCADO master VM.
 
         Args:
             id (string): The MiCADO master UUID.
-            auth_url (string): Authentication URL for the NOVA
-                resource.
-            region (string, optional): Name of the region resource.
-                Defaults to None.
-            user_domain_name (string, optional): Define the user_domain_name.
-                Defaults to 'Default'
-            project_id (string, optional): ID of the project resource.
-                Defaults to None.
         """
         self.api._destroy()
         self.api = None
-        self.launcher.delete(**kwargs)
+        self.launcher.delete(id)
