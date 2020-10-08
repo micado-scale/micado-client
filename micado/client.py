@@ -29,7 +29,8 @@ class MicadoClient:
 
     Usage with a launcher:
 
-        a)
+    a)
+
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="openstack")
         >>> client.master.create(
@@ -44,7 +45,8 @@ class MicadoClient:
         >>> client.applications.list()
         >>> client.master.destroy()
 
-        b)
+    b)
+
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="openstack")
         >>> master_id = client.master.create(
