@@ -29,9 +29,10 @@ class MicadoClient:
 
     Usage with a launcher:
 
+        a)
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="openstack")
-        >>> ID = client.master.create(
+        >>> client.master.create(
         ...     auth_url='yourendpoint',
         ...     project_id='project_id',
         ...     image='image_name or image_id',
@@ -41,9 +42,33 @@ class MicadoClient:
         ...     security_group='security_group_name or security_group_id'
         ... )
         >>> client.applications.list()
-        >>> client.master.destroy(ID)
+        >>> client.master.destroy()
 
-    Usage without a launcher:
+        b)
+        >>> from micado import MicadoClient
+        >>> client = MicadoClient(launcher="openstack")
+        >>> master_id = client.master.create(
+        ...     auth_url='yourendpoint',
+        ...     project_id='project_id',
+        ...     image='image_name or image_id',
+        ...     flavor='flavor_name or flavor_id',
+        ...     network='network_name or network_id',
+        ...     keypair='keypair_name or keypair_id',
+        ...     security_group='security_group_name or security_group_id'
+        ... )
+        >>> client.applications.list()
+        >>> << store your master_id >>
+        >>> << exit >>
+        >>> -------------------------------------------------------------
+        >>> << start >>
+        >>> ...
+        >>> master_id = << retrieve master_id >>
+        >>> client = MicadoClient(launcher="openstack")
+        >>> client.master.attach(master_id = master_id)
+        >>> client.applications.list()
+        >>> client.master.destroy()
+
+    Usage without a launcher i.e. MiCADO master is already created independently from the client library.
 
         >>> from micado import MicadoClient
         >>> client = MicadoClient(

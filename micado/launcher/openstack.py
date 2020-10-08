@@ -46,9 +46,8 @@ class OpenStackLauncher:
 
     """
     home = str(Path.home())+'/.micado-cli/'
-    micado_version = '0.9.0'
-    # ansible_folder = home+'ansible-micado-'+micado_version+'/'
-    ansible_folder = home+'ansible-micado-develop/'
+    micado_version = '0.9.1'
+    ansible_folder = home+'ansible-micado-'+micado_version+'/'
     api_version = 'v2.0'
 
     def launch(self, auth_url, image, flavor, network, keypair, security_group='all', region=None,
@@ -391,9 +390,8 @@ class OpenStackLauncher:
         """Download ansible_micado from GitHub and write down to home directory.
         """
         logger.info('Download Ansible MiCADO')
-        # url = 'https://github.com/micado-scale/ansible-micado/releases/download/v' + \
-        #     self.micado_version+'/ansible-micado-'+self.micado_version+'.tar.gz'
-        url = 'https://github.com/micado-scale/ansible-micado/archive/develop.tar.gz'
+        url = 'https://github.com/micado-scale/ansible-micado/releases/download/v' + \
+                self.micado_version+'/ansible-micado-'+self.micado_version+'.tar.gz'
         r = requests.get(url)
         tarfile_location = self.home+'ansible-micado-'+self.micado_version+'.tar.gz'
         with open(tarfile_location, 'wb') as f:
@@ -604,9 +602,9 @@ class OpenStackLauncher:
         """
         # check if file does exist
         logger.debug("Save data")
-        file_location = self.home+'data.yml'
-        cert_path = server_id+'-ssl.pem'
-        endpoint = 'https://'+ip+'/toscasubmitter/'+api_version
+        file_location = self.home + 'data.yml'
+        cert_path = self.home + server_id + '-ssl.pem'
+        endpoint = 'https://' + ip + '/toscasubmitter'
         yaml = YAML()
         yaml.indent(mapping=2, sequence=4, offset=2)
         content = None
@@ -641,3 +639,18 @@ class OpenStackLauncher:
                                                 "user_domain_name":user_domain_name}}]}
         with open(self.home+'data.yml', "w") as f:
             yaml.dump(content, f)
+
+    def _get_property(self, key, id):
+        """
+        """
+        yaml = YAML()
+        content = None
+        with open(self.home+'data.yml', mode='r') as f:
+            content=yaml.load(f)
+        search = [i for i in content["masters"] if i.get(id, None)]
+        if not search:
+            logger.error("Can't find {} property!".format(key))
+            raise Exception("Can't find property!")
+        else:
+            return search[0][id][key]
+        return None

@@ -13,6 +13,14 @@ class MicadoMaster(Model):
         super().__init__(**kwargs)
 
     @property
+    def master_id(self):
+        return self.client.master_id
+
+    @master_id.setter
+    def master_id(self, master_id):
+        self.client.master_id = master_id
+
+    @property
     def launcher(self):
         return self.client.launcher
 
@@ -23,6 +31,29 @@ class MicadoMaster(Model):
     @api.setter
     def api(self, api):
         self.client.api = api
+
+    def init_api(self):
+        """Configure Submitter API
+
+        Returns:
+            SubmitterClient: return SubmitterClient
+        """
+        api_end = self.launcher._get_property("endpoint", self.master_id)
+        api_vers = self.launcher._get_property("api_version", self.master_id)
+        cert_path = self.launcher._get_property("cert_path", self.master_id)
+        auth_data = (self.launcher._get_property("micado_user", self.master_id),
+                     self.launcher._get_property("micado_password", self.master_id))
+        return SubmitterClient(endpoint=api_end, version=api_vers, verify=cert_path, auth=auth_data)
+
+    def attach(self, master_id):
+        """Configure the master object to handle the instance
+        created by the def:create()
+
+        Args:
+            master_id (string): master ID returned by def:create()
+        """
+        self.master_id = master_id
+        self.api = self.init_api()
 
     def create(self, **kwargs):
         """Creates a new MiCADO master VM and deploy MiCADO service on it.
@@ -63,24 +94,19 @@ class MicadoMaster(Model):
             string: ID of MiCADO master
 
         """
+        self.master_id = self.launcher.launch(**kwargs)
+        self.api = self.init_api()
+        return self.master_id
 
-        self.id = self.launcher.launch(**kwargs)
-        api_end = self.launcher.get_api_endpoint(self.id)
-        api_vers = self.launcher.get_api_version()
-        self.api = SubmitterClient(endpoint=api_end, version=api_vers)
-        return self.id
-
-    def destroy(self, id):
+    def destroy(self):
         """Destroy running applications and the existing MiCADO master VM.
-
-        Args:
-            id (string): The MiCADO master ID.
 
         Usage:
 
-            >>> client.master.destroy(ID)
+            >>> client.master.destroy()
 
         """
+        self.api = self.init_api()
         self.api._destroy()
         self.api = None
-        self.launcher.delete(id)
+        self.launcher.delete(self.master_id)

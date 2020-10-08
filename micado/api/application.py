@@ -85,8 +85,8 @@ class ApplicationMixin:
         return resp.json()
 
     def _destroy(self):
-        """Deletes all application in MiCADO 
-        
+        """Deletes all application in MiCADO
+
         This should normally only be called by a launcher that
         is ready to destroy its master node
         """
