@@ -46,7 +46,7 @@ class OpenStackLauncher:
 
     """
     home = str(Path.home())+'/.micado-cli/'
-    micado_version = '0.9.1'
+    micado_version = '0.9.1-rev1'
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
     api_version = 'v2.0'
 
