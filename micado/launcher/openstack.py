@@ -29,9 +29,15 @@ from ..exceptions import MicadoException
 """
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+micado_dir = Path.home() / ".micado-cli"
+Path(micado_dir).mkdir(parents=True, exist_ok=True)
 ch = logging.StreamHandler()
 fh = logging.handlers.RotatingFileHandler(
-    filename=str(Path.home())+'/.micado-cli/micado-cli.log', mode='a', maxBytes=52428800, backupCount=3)
+    filename=str(micado_dir / "micado-cli.log"),
+    mode="a",
+    maxBytes=52428800,
+    backupCount=3,
+)
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s : %(message)s')
