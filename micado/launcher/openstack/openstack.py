@@ -150,11 +150,13 @@ class OpenStackLauncher:
             return server.id
         except MicadoException as e:
             logger.error(f"Exception cought: {e}")
+            raise
         except Exception as e:
             logger.error(f"Exception cought: {e}")
             if 'server' in locals():
                 conn.delete_server(server.id)
                 logger.info(f"{server.id} VM dropped.")
+            raise
 
     def get_api_endpoint(self, id):
         """Return the MiCADO Master Submitter API endpoint
