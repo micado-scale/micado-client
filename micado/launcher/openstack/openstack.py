@@ -14,15 +14,15 @@ from shutil import copyfile
 
 import requests
 from Crypto.PublicKey import ECC
-from keystoneauth1 import loading, session
-from keystoneauth1.identity import v3
+from keystoneauth1 import session
 from novaclient import client as nova_client
 from ruamel.yaml import YAML
 
 import openstack
 from openstack import connection
 
-from ..exceptions import MicadoException
+from .auth import PRIMARY_AUTH_TYPES, PRE_AUTH_TYPES
+from micado.exceptions import MicadoException
 
 """Low-level methods for handling a MiCADO master with OpenStackSDK
 
@@ -150,11 +150,13 @@ class OpenStackLauncher:
             return server.id
         except MicadoException as e:
             logger.error(f"Exception cought: {e}")
+            raise
         except Exception as e:
             logger.error(f"Exception cought: {e}")
             if 'server' in locals():
                 conn.delete_server(server.id)
                 logger.info(f"{server.id} VM dropped.")
+            raise
 
     def get_api_endpoint(self, id):
         """Return the MiCADO Master Submitter API endpoint
@@ -238,63 +240,55 @@ class OpenStackLauncher:
         """Read credential from file.
 
         Raises:
-            MicadoException: Missing or incorrect data.
+            TypeError: Missing or incorrect credential data.
 
         Returns:
-            tuple: return authentication data
+            Authenticator: specific authenticator object
         """
-        with open(self.home+'credentials-cloud-api.yml', 'r') as stream:
+        with open(self.home + "credentials-cloud-api.yml", "r") as stream:
             yaml = YAML()
             auth_data = yaml.load(stream)
 
-        username = None
-        password = None
-        application_credential_id = None
-        application_credential_secret = None
+        resources = {}
+        for resource in auth_data["resource"]:
+            resources[resource["type"]] = resource["auth_data"]
+        
+        nova = {
+            key: val
+            for key, val
+            in resources.get("nova", {}).items()
+            if val
+        }
 
         try:
-            nova = [resource for resource in auth_data['resource']
-                    if resource['type'] == 'nova'][0]
-        except MicadoException as e:
-            logger.info("Can't find Nova resource.")
-            raise MicadoException("Can't find Nova resource type. Aborted")
+            self.resolve_pre_auth(nova, resources)
+        except KeyError as e:
+            raise TypeError(f"Could not authenticate with {e}")
+        except TypeError as e:
+            raise TypeError(f"Missing auth data: {e}")
 
-        username = nova['auth_data'].get('username', None)
-        password = nova['auth_data'].get('password', None)
-        application_credential_id = nova['auth_data'].get(
-            'application_credential_id', None)
-        application_credential_secret = nova['auth_data'].get(
-            'application_credential_secret', None)
+        errors = []
+        for auth in PRIMARY_AUTH_TYPES:
+            try:
+                return auth(**nova)
+            except TypeError as error:
+                errors.append(f"{auth.__name__}.{error}")
 
-        missing_app_credential = (not application_credential_id and application_credential_secret != None) or (
-            application_credential_id != None and not application_credential_secret)
-        missing_password_credential = (not username and password != None) or (
-            username != None and not password)
-        both_credential_missing = application_credential_id != None and application_credential_secret != None and username != None and password != None
-        no_credential_specified = not application_credential_id and not application_credential_secret and not username and not password
+        errors = "\n" + "\n".join(errors)
+        raise TypeError(f"Incomplete/ambiguous credentials: {errors}")
 
-        if missing_app_credential or missing_password_credential:
-            raise MicadoException("Missing credentials!")
+    def resolve_pre_auth(self, nova, resources):
+        """Refresh or replace any token placeholders
 
-        if missing_app_credential and missing_password_credential:
-            raise MicadoException("No credentials found.")
-
-        if both_credential_missing:
-            raise MicadoException(
-                "Both credential specified. Please choose one of them.")
-
-        if no_credential_specified:
-            raise MicadoException(
-                "No credential specified. Please follow the tutorial.")
-
-        # Password type
-        if not application_credential_id:
-            return username, password, False
-        # Application credential
-        else:
-            return application_credential_id, application_credential_secret, True
-
-        return auth_data
+        Args:
+            nova (dict): OpenStack credential data
+            resources (dict): All credential data
+        """
+        for reference, auth in PRE_AUTH_TYPES.items():
+            for key, placeholder in nova.items():
+                if reference.lower() == placeholder.lower():
+                    nova[key] = auth(**resources[placeholder])
+                    return
 
     def get_unused_floating_ip(self, conn):
         """Return unused ip.
@@ -307,7 +301,9 @@ class OpenStackLauncher:
         """
         return [addr for addr in conn.list_floating_ips() if addr.attached == False]
 
-    def get_connection(self, auth_url, region_name, project_id, user_domain_name):
+    def get_connection(
+        self, auth_url, region_name, project_id, user_domain_name
+    ):
         """Create OpenStack connection.
 
         Args:
@@ -326,25 +322,24 @@ class OpenStackLauncher:
         Returns:
             tuple: OpenStackSDK connection, and nova_client Connection
         """
-        auth_data = self.get_credentials()
-        if auth_data[2]:
-            app_cred_id = auth_data[0]
-            app_cred_secret = auth_data[1]
-            auth = v3.ApplicationCredential(
-                auth_url, application_credential_id=app_cred_id, application_credential_secret=app_cred_secret)
-        else:
-            if project_id is None:
-                raise Exception('Project ID is missing!')
-            user = auth_data[0]
-            password = auth_data[1]
-            auth = v3.Password(auth_url=auth_url, username=user, password=password,
-                               user_domain_name=user_domain_name, project_id=project_id)
+        logger.info("Pulling credentials...")
+        authenticator = self.get_credentials()
+        authenticator.project_id = authenticator.project_id or project_id
+        authenticator.user_domain_name = user_domain_name
+        authenticator.auth_url = auth_url
+
+        logger.info("Authenticating with OpenStack...")
+        auth = authenticator.authenticate()
         sess = session.Session(auth=auth)
-        return connection.Connection(
-            region_name=region_name,
-            session=sess,
-            compute_api_version='2',
-            identity_interface='public'), nova_client.Client(2, session=sess, region_name=region_name)
+        return (
+            connection.Connection(
+                region_name=region_name,
+                session=sess,
+                compute_api_version="2",
+                identity_interface="public",
+            ),
+            nova_client.Client(2, session=sess, region_name=region_name),
+        )
 
     def _check_home_folder(self):
         """Check if homefolder exist
