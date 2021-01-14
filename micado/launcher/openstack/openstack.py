@@ -575,13 +575,21 @@ class OpenStackLauncher:
             ip (string): Target IP
             id (string): UUID of the VM
         """
-        logger.info('Get MiCADO self_signed cert')
-        subprocess.run(["scp", 'ubuntu@'+ip+':/var/lib/micado/zorp/config/ssl.pem', self.home+id+'-ssl.pem'],
-                       shell=False,
-                       stdin=None,
-                       stdout=subprocess.PIPE,
-                       stderr=subprocess.PIPE,
-                       check=True)
+        logger.info("Get MiCADO self_signed cert")
+        subprocess.run(
+            [
+                "scp",
+                "-i",
+                f"{self.home}micado_cli_config_priv_key",
+                f"ubuntu@{ip}:/var/lib/micado/zorp/config/ssl.pem",
+                f"{self.home}{id}-ssl.pem",
+            ],
+            shell=False,
+            stdin=None,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
 
     def _store_data(self, api_version, ip, micado_user, micado_password, server_id, auth_url, region_name, project_id, user_domain_name):
         """Persist deployment data
