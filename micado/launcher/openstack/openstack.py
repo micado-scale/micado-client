@@ -21,7 +21,7 @@ from ruamel.yaml import YAML
 import openstack
 from openstack import connection
 
-from .auth import PRIMARY_AUTH_TYPES, PRE_AUTH_TYPES
+from .auth import AUTH_TYPES
 from micado.exceptions import MicadoException
 
 """Low-level methods for handling a MiCADO master with OpenStackSDK
@@ -266,15 +266,8 @@ class OpenStackLauncher:
             if val
         }
 
-        try:
-            self.resolve_pre_auth(nova, resources)
-        except KeyError as e:
-            raise TypeError(f"Could not authenticate with {e}")
-        except TypeError as e:
-            raise TypeError(f"Missing auth data: {e}")
-
         errors = []
-        for auth in PRIMARY_AUTH_TYPES:
+        for auth in AUTH_TYPES:
             try:
                 return auth(**nova)
             except TypeError as error:
@@ -282,19 +275,6 @@ class OpenStackLauncher:
 
         errors = "\n" + "\n".join(errors)
         raise TypeError(f"Incomplete/ambiguous credentials: {errors}")
-
-    def resolve_pre_auth(self, nova, resources):
-        """Refresh or replace any token placeholders
-
-        Args:
-            nova (dict): OpenStack credential data
-            resources (dict): All credential data
-        """
-        for reference, auth in PRE_AUTH_TYPES.items():
-            for key, placeholder in nova.items():
-                if reference.lower() == placeholder.lower():
-                    nova[key] = auth(**resources[placeholder])
-                    return
 
     def get_unused_floating_ip(self, conn):
         """Return unused ip.

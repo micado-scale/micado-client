@@ -32,7 +32,7 @@ class PasswordAuthenticator(Authenticator):
 
 class OidcAuthenticator(Authenticator):
     def __init__(self, *, access_token, identity_provider, protocol="openid"):
-        self.access_token = access_token
+        self.access_token = _verify_access_token(access_token)
         self.identity_provider = identity_provider
         self.protocol = protocol
         self.project_id = None
@@ -46,6 +46,12 @@ class OidcAuthenticator(Authenticator):
             identity_provider=self.identity_provider,
             project_id=self.project_id,
         )
+
+
+def _verify_access_token(access_token):
+    if isinstance(access_token, dict):
+        return refresh_openid_token(**access_token)
+    return access_token
 
 
 class AppCredAuthenticator(Authenticator):
@@ -91,12 +97,8 @@ def refresh_openid_token(
         raise exceptions.MicadoException("OpenID failed: {response}")
 
 
-PRIMARY_AUTH_TYPES = (
+AUTH_TYPES = (
     PasswordAuthenticator,
     AppCredAuthenticator,
     OidcAuthenticator,
 )
-
-PRE_AUTH_TYPES = {
-    "OPENID": refresh_openid_token,
-}

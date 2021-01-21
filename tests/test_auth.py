@@ -1,6 +1,6 @@
 import pytest
 import requests
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from micado.launcher.openstack import auth
 
@@ -51,6 +51,12 @@ def test_password_auth_too_many_args(authenticator, args):
     args["extra"] = "extra"
     with pytest.raises(TypeError):
         authenticator(**args)
+
+def test_oidc_calls_openid_refresh_with_dict(monkeypatch):
+    mocked_fn = Mock()
+    monkeypatch.setattr(auth, "refresh_openid_token", mocked_fn)
+    auth.OidcAuthenticator(access_token={}, identity_provider="")
+    assert(mocked_fn.called)
 
 
 @pytest.fixture
