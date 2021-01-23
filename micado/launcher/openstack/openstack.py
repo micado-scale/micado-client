@@ -21,16 +21,19 @@ from ruamel.yaml import YAML
 import openstack
 from openstack import connection
 
-from .auth import PRIMARY_AUTH_TYPES, PRE_AUTH_TYPES
+from .auth import AUTH_TYPES
 from micado.exceptions import MicadoException
 
 """Low-level methods for handling a MiCADO master with OpenStackSDK
 
 """
+DEFAULT_PATH=Path.home() / ".micado-cli"
+DEFAULT_VERS="0.9.1-rev1"
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-micado_dir = Path.home() / ".micado-cli"
-Path(micado_dir).mkdir(parents=True, exist_ok=True)
+micado_dir = Path(os.environ.get("MICADO_DIR", DEFAULT_PATH))
+micado_dir.mkdir(parents=True, exist_ok=True)
 ch = logging.StreamHandler()
 fh = logging.handlers.RotatingFileHandler(
     filename=str(micado_dir / "micado-cli.log"),
@@ -51,8 +54,9 @@ class OpenStackLauncher:
     """For launching a MiCADO Master with OpenStackSDK
 
     """
-    home = str(Path.home())+'/.micado-cli/'
-    micado_version = '0.9.1-rev1'
+
+    home = str(Path(os.environ.get("MICADO_DIR", DEFAULT_PATH)))+'/'
+    micado_version = os.environ.get("MICADO_VERS", DEFAULT_VERS)
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
     api_version = 'v2.0'
 
@@ -266,15 +270,8 @@ class OpenStackLauncher:
             if val
         }
 
-        try:
-            self.resolve_pre_auth(nova, resources)
-        except KeyError as e:
-            raise TypeError(f"Could not authenticate with {e}")
-        except TypeError as e:
-            raise TypeError(f"Missing auth data: {e}")
-
         errors = []
-        for auth in PRIMARY_AUTH_TYPES:
+        for auth in AUTH_TYPES:
             try:
                 return auth(**nova)
             except TypeError as error:
@@ -282,19 +279,6 @@ class OpenStackLauncher:
 
         errors = "\n" + "\n".join(errors)
         raise TypeError(f"Incomplete/ambiguous credentials: {errors}")
-
-    def resolve_pre_auth(self, nova, resources):
-        """Refresh or replace any token placeholders
-
-        Args:
-            nova (dict): OpenStack credential data
-            resources (dict): All credential data
-        """
-        for reference, auth in PRE_AUTH_TYPES.items():
-            for key, placeholder in nova.items():
-                if reference.lower() == placeholder.lower():
-                    nova[key] = auth(**resources[placeholder])
-                    return
 
     def get_unused_floating_ip(self, conn):
         """Return unused ip.
@@ -513,6 +497,8 @@ class OpenStackLauncher:
         """Remove known_host file
         """
         known_hosts = str(Path.home())+'/.ssh/known_hosts'
+        if not os.path.isfile(known_hosts):
+            return
         with open(known_hosts) as file:
             all_lines = file.readlines()
         with open(known_hosts, 'a') as file2:
@@ -547,8 +533,7 @@ class OpenStackLauncher:
         attempts = 0
         sleep_time = 2
         max_attempts = 100
-        err = "default"
-        while attempts < max_attempts and err != "":
+        while attempts < max_attempts:
             logger.debug('attempts:{}/{} Cloud-init still running. Try again {} second later'.format(
                 attempts+1, max_attempts, sleep_time))
             time.sleep(sleep_time)
@@ -558,7 +543,8 @@ class OpenStackLauncher:
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
                                     check=False)
-            err = result.stderr.decode()
+            if result.returncode == 0:
+                break
             logger.debug(result.stderr.decode())
             attempts += 1
 
