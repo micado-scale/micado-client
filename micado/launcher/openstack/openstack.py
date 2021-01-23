@@ -497,6 +497,8 @@ class OpenStackLauncher:
         """Remove known_host file
         """
         known_hosts = str(Path.home())+'/.ssh/known_hosts'
+        if not os.path.isfile(known_hosts):
+            return
         with open(known_hosts) as file:
             all_lines = file.readlines()
         with open(known_hosts, 'a') as file2:
