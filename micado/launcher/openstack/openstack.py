@@ -27,10 +27,13 @@ from micado.exceptions import MicadoException
 """Low-level methods for handling a MiCADO master with OpenStackSDK
 
 """
+DEFAULT_PATH=Path.home() / ".micado-cli"
+DEFAULT_VERS="0.9.1-rev1"
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-micado_dir = Path.home() / ".micado-cli"
-Path(micado_dir).mkdir(parents=True, exist_ok=True)
+micado_dir = Path(os.environ.get("MICADO_DIR", DEFAULT_PATH))
+micado_dir.mkdir(parents=True, exist_ok=True)
 ch = logging.StreamHandler()
 fh = logging.handlers.RotatingFileHandler(
     filename=str(micado_dir / "micado-cli.log"),
@@ -51,8 +54,9 @@ class OpenStackLauncher:
     """For launching a MiCADO Master with OpenStackSDK
 
     """
-    home = str(Path.home())+'/.micado-cli/'
-    micado_version = '0.9.1-rev1'
+
+    home = str(Path(os.environ.get("MICADO_DIR", DEFAULT_PATH)))+'/'
+    micado_version = os.environ.get("MICADO_VERS", DEFAULT_VERS)
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
     api_version = 'v2.0'
 
