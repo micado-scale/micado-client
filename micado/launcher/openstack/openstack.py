@@ -533,8 +533,7 @@ class OpenStackLauncher:
         attempts = 0
         sleep_time = 2
         max_attempts = 100
-        err = "default"
-        while attempts < max_attempts and err != "":
+        while attempts < max_attempts:
             logger.debug('attempts:{}/{} Cloud-init still running. Try again {} second later'.format(
                 attempts+1, max_attempts, sleep_time))
             time.sleep(sleep_time)
@@ -544,7 +543,8 @@ class OpenStackLauncher:
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
                                     check=False)
-            err = result.stderr.decode()
+            if result.returncode == 0:
+                break
             logger.debug(result.stderr.decode())
             attempts += 1
 
