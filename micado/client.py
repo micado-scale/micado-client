@@ -11,6 +11,8 @@ from .api.client import SubmitterClient
 from .launcher.occopus import OccopusLauncher
 from .launcher.openstack import OpenStackLauncher
 
+from .installer.ansible import Ansible
+
 from .models.application import Applications
 from .models.master import MicadoMaster
 
@@ -19,6 +21,10 @@ from .exceptions import MicadoException
 LAUNCHERS = {
     "occopus": OccopusLauncher,
     "openstack": OpenStackLauncher,
+}
+
+INSTALLER = {
+    "ansible": Ansible,
 }
 
 
@@ -32,7 +38,7 @@ class MicadoClient:
     a)
 
         >>> from micado import MicadoClient
-        >>> client = MicadoClient(launcher="openstack")
+        >>> client = MicadoClient(launcher="openstack", installer="ansible")
         >>> client.master.create(
         ...     auth_url='yourendpoint',
         ...     project_id='project_id',
@@ -48,7 +54,7 @@ class MicadoClient:
     b)
 
         >>> from micado import MicadoClient
-        >>> client = MicadoClient(launcher="openstack")
+        >>> client = MicadoClient(launcher="openstack", installer="ansible")
         >>> master_id = client.master.create(
         ...     auth_url='yourendpoint',
         ...     project_id='project_id',
@@ -65,7 +71,7 @@ class MicadoClient:
         >>> << start >>
         >>> ...
         >>> master_id = << retrieve master_id >>
-        >>> client = MicadoClient(launcher="openstack")
+        >>> client = MicadoClient(launcher="openstack", installer="ansible")
         >>> client.master.attach(master_id = master_id)
         >>> client.applications.list()
         >>> client.master.destroy()
@@ -100,6 +106,8 @@ class MicadoClient:
             Defaults to admin.
         micado_password (string, optional): MiCADO password.
             Defaults to admin.
+        enable_terraform (bool, optional): Enable terraform in the deployment.
+            Defaults to False.
         endpoint (string): Full URL to API endpoint (omit version).
             Required.
         version (string, optional): MiCADO API Version (minimum v2.0).
@@ -113,12 +121,17 @@ class MicadoClient:
 
     def __init__(self, *args, **kwargs):
         launcher = kwargs.pop("launcher", "").lower()
+        installer = kwargs.pop("installer", "").lower()
         if launcher:
             self.api = None
             try:
                 self.launcher = LAUNCHERS[launcher]()
             except KeyError:
                 raise MicadoException(f"Unknown launcher: {launcher}")
+            try:
+                self.installer = INSTALLER[installer]()
+            except KeyError:
+                raise MicadoException(f"Unknown installer: {installer}")
         else:
             self.api = SubmitterClient(*args, **kwargs)
 

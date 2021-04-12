@@ -1,13 +1,19 @@
 """
 Higher-level methods to manage the MiCADO master
 """
+import os
+from pathlib import Path
 
-from .base import Model
+from micado.utils.utils import DataHandling
 
 from ..api.client import SubmitterClient
+from .base import Model
+
+DEFAULT_PATH = Path.home() / ".micado-cli"
 
 
 class MicadoMaster(Model):
+    home = str(Path(os.environ.get("MICADO_CLI_DIR", DEFAULT_PATH))) + '/'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -25,6 +31,10 @@ class MicadoMaster(Model):
         return self.client.launcher
 
     @property
+    def installer(self):
+        return self.client.installer
+
+    @property
     def api(self):
         return self.client.api
 
@@ -38,12 +48,13 @@ class MicadoMaster(Model):
         Returns:
             SubmitterClient: return SubmitterClient
         """
-        api_end = self.launcher._get_property("endpoint", self.master_id)
-        api_vers = self.launcher._get_property("api_version", self.master_id)
-        cert_path = self.launcher._get_property("cert_path", self.master_id)
-        auth_data = (self.launcher._get_property("micado_user", self.master_id),
-                     self.launcher._get_property("micado_password", self.master_id))
-        return SubmitterClient(endpoint=api_end, version=api_vers, verify=cert_path, auth=auth_data)
+        server = DataHandling.get_properties(
+            f'{self.home}data.yml', self.master_id)
+        return SubmitterClient(endpoint=server["endpoint"],
+                               version=server["api_version"],
+                               verify=server["cert_path"],
+                               auth=(server["micado_user"],
+                                     server["micado_password"]))
 
     def attach(self, master_id):
         """Configure the master object to handle the instance
@@ -95,6 +106,7 @@ class MicadoMaster(Model):
 
         """
         self.master_id = self.launcher.launch(**kwargs)
+        self.installer.deploy(self.master_id, **kwargs)
         self.api = self.init_api()
         return self.master_id
 
