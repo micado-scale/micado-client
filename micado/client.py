@@ -10,6 +10,7 @@ from .api.client import SubmitterClient
 
 from .launcher.occopus import OccopusLauncher
 from .launcher.openstack import OpenStackLauncher
+from .launcher.cloudbroker import CloudBrokerLauncher
 
 from .installer.ansible import Ansible
 
@@ -21,6 +22,7 @@ from .exceptions import MicadoException
 LAUNCHERS = {
     "occopus": OccopusLauncher,
     "openstack": OpenStackLauncher,
+    "cloudbroker": CloudBrokerLauncher,
 }
 
 INSTALLER = {
@@ -75,6 +77,21 @@ class MicadoClient:
         >>> client.master.attach(master_id = master_id)
         >>> client.applications.list()
         >>> client.master.destroy()
+
+    c) 
+
+        >>> from micado import MicadoClient
+        >>> client = MicadoClient(launcher="cloudbroker", installer="ansible")
+        >>> client.master.create(
+        ...     auth_url='yourendpoint',
+        ...     deployment_id='deployment_id',
+        ...     instance_type_id='image_name or image_id',
+        ...     key_pair_id='key_pair_id',
+        ...     firewall_rule_set_id='firewall_rule_set_id',
+        ... )
+        >>> client.applications.list()
+        >>> client.master.destroy()
+
 
     Usage without a launcher i.e. MiCADO master is already created independently from the client library.
 
