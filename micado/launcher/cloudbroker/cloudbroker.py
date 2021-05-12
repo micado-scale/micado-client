@@ -3,9 +3,6 @@
 import logging
 import logging.config
 import os
-import random
-import subprocess
-import time
 import uuid
 from pathlib import Path
 from urllib.parse import urlparse
@@ -18,7 +15,8 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 import xml.etree.ElementTree as ET
 from dicttoxml import dicttoxml
 from collections import OrderedDict
-import requests
+import requests, json
+import base64
 from micado.exceptions import MicadoException
 from micado.utils.utils import DataHandling, SSHKeyHandling
 import ruamel.yaml as yaml
@@ -94,6 +92,15 @@ class CloudBrokerLauncher:
             descr['name'] = name
 
             logger.info('Creating CloudBroker VM...')
+            cloud_init_config = """
+            #cloud-config
+
+            ssh_authorized_keys:
+            - {}
+            """.format(pub_key)
+
+            descr['cloud-init'] = base64.b64encode(cloud_init_config.encode('utf-8')).decode('utf-8')
+            descr['cloud-init-b64'] = 'true'
 
             logger.debug("XML to pass to CloudBroker: %s", dicttoxml(descr, custom_root='instance', attr_type=False))
             r = requests.post(auth_url + '/instances.xml',
