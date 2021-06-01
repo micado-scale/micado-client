@@ -78,8 +78,11 @@ class DataHandling:
         """
         yaml = YAML()
         content = None
-        with open(path, mode='r') as f:
-            content = yaml.load(f)
+        try:
+            with open(path, mode='r') as f:
+                content = yaml.load(f)
+        except Exception as e:
+            raise e
         search = [i for i in content["masters"] if i.get(server_id, None)]
         if not search:
             logger.error("Can't find {} record!".format(server_id))
