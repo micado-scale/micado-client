@@ -105,9 +105,14 @@ class MicadoMaster(Model):
             string: ID of MiCADO master
 
         """
-        self.master_id = self.launcher.launch(**kwargs)
-        self.installer.deploy(self.master_id, **kwargs)
-        self.api = self.init_api()
+        try:
+            self.master_id = self.launcher.launch(**kwargs)
+            self.installer.deploy(self.master_id, **kwargs)
+            self.api = self.init_api()
+        except Exception as e:
+            if hasattr(locals()['self'], 'master_id'):
+                self.launcher.delete(self.master_id)
+            raise
         return self.master_id
 
     def destroy(self):

@@ -180,8 +180,9 @@ class OpenStackLauncher:
                 raise MicadoException("{} is not a valid VM ID!".format(id))
             conn.delete_server(id)
             logger.info('Dropping node {}'.format(id))
-            logger.info("remove {}-ssl.pem".format(self.home + id))
-            os.remove(self.home + id + '-ssl.pem')
+            if os.path.isfile(self.home + id + '-ssl.pem'):
+                logger.info("remove {}-ssl.pem".format(self.home + id))
+                os.remove(self.home + id + '-ssl.pem')
             return "Destroyed"
         except MicadoException as e:
             logger.error(f"Exception cought: {e}")

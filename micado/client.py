@@ -138,7 +138,6 @@ class MicadoClient:
 
     def __init__(self, *args, **kwargs):
         launcher = kwargs.pop("launcher", "").lower()
-        installer = kwargs.pop("installer", "").lower()
         if launcher:
             self.api = None
             try:
@@ -146,7 +145,9 @@ class MicadoClient:
             except KeyError:
                 raise MicadoException(f"Unknown launcher: {launcher}")
             try:
-                self.installer = INSTALLER[installer]()
+                installer = kwargs.pop("installer", "").lower()
+                if installer != '':
+                    self.installer = INSTALLER[installer]()
             except KeyError:
                 raise MicadoException(f"Unknown installer: {installer}")
         else:
