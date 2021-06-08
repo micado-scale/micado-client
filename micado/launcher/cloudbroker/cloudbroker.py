@@ -114,7 +114,11 @@ class CloudBrokerLauncher:
                 instance = DOMTree.documentElement
                 instanceID = instance.getElementsByTagName('id')[0].childNodes[0].data
                 logger.info("CloudBroker instance started, instance id: %s", instanceID)
-                instance = self.get_instance(auth_url, instanceID)
+                mstate = "starting"
+                while mstate != "running":
+                    sleep(20)
+                    instance = self.get_instance(auth_url, instanceID)
+                    mstate = self.getTagText(instance.getElementsByTagName('status').item(0).childNodes)
                 floating_ip_address = self.getTagText(instance.getElementsByTagName('external-ip-address').item(0).childNodes)
                 self._persist_data(floating_ip_address, instanceID, auth_url, deployment_id, instance_type_id, key_pair_id, firewall_rule_set_id)
                 return instanceID
