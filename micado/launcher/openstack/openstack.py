@@ -80,7 +80,7 @@ class OpenStackLauncher:
             string: MiCADO master ID
         """
         try:
-            pub_key = SSHKeyHandling.get_pub_key(str(micado_cli_dir))
+            pub_key = SSHKeyHandling.get_pub_key(self.home)
             conn, conn_nova = self._get_connection(
                 auth_url, region, project_id, user_domain_name)
             image = conn.get_image(image)
@@ -278,7 +278,7 @@ class OpenStackLauncher:
         """
         """
         endpoint = f'https://{ip}/toscasubmitter'
-        file_location = str(micado_cli_dir) + "/data.yml"
+        file_location = self.home + "data.yml"
         DataHandling.persist_data(path=file_location,
                                   server_id=server_id,
                                   ip=ip,

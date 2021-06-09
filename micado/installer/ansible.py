@@ -23,11 +23,11 @@ API_VERS = "v2.0"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-micado_dir = Path(os.environ.get("MICADO_DIR", DEFAULT_PATH))
-micado_dir.mkdir(parents=True, exist_ok=True)
+micado_cli_dir = Path(os.environ.get("MICADO_DIR", DEFAULT_PATH))
+micado_cli_dir.mkdir(parents=True, exist_ok=True)
 ch = logging.StreamHandler()
 fh = logging.handlers.RotatingFileHandler(
-    filename=str(micado_dir / "micado-cli.log"),
+    filename=str(micado_cli_dir / "micado-cli.log"),
     mode="a",
     maxBytes=52428800,
     backupCount=3,
@@ -50,7 +50,7 @@ class Ansible:
 
     def deploy(self, server_id, micado_user='admin', micado_password='admin', terraform=False, **kwargs):
         server = DataHandling.get_properties(
-            str(micado_dir)+'/data.yml', server_id)
+            self.home+'/data.yml', server_id)
         self._download_ansible_micado()
         self._extract_tar()
         self._configure_ansible_playbook(
@@ -250,7 +250,7 @@ class Ansible:
             micado_password (string): MiCADO password
         """
         cert_path = f"{self.home}{server_id}-ssl.pem"
-        DataHandling.update_data(str(micado_dir)+'/data.yml', server_id, api_version=api_version,
+        DataHandling.update_data(self.home+'data.yml', server_id, api_version=api_version,
                                  micado_user=micado_user, micado_password=micado_password, cert_path=cert_path)
 
     def get_api_version(self):
