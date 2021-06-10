@@ -70,7 +70,7 @@ class CloudBrokerLauncher:
         instanceID = ""
 
         try:
-            pub_key = SSHKeyHandling.get_pub_key(str(micado_cli_dir))
+            pub_key = SSHKeyHandling.get_pub_key(self.home)
             if deployment_id is None:
                 raise MicadoException("Can't find deployment id!")
             if instance_type_id is None:
@@ -161,8 +161,9 @@ class CloudBrokerLauncher:
 
             r = requests.put(auth_url + '/instances/' + id + '/stop.xml', auth=self.get_auth())
             logger.info('Dropping node {}'.format(id))
-            logger.info("remove {}-ssl.pem".format(self.home + id))
-            os.remove(self.home + id + '-ssl.pem')
+            if os.path.isfile(self.home + id + '-ssl.pem'):
+                logger.info("remove {}-ssl.pem".format(self.home + id))
+                os.remove(self.home + id + '-ssl.pem')
             return "Destroyed"
         except MicadoException as e:
             logger.error(f"Exception cought: {e}")
@@ -191,7 +192,7 @@ class CloudBrokerLauncher:
         """
         """
         endpoint = f'https://{floating_ip_address}/toscasubmitter'
-        file_location = str(micado_cli_dir) + "/data.yml"
+        file_location = self.home + "data.yml"
         DataHandling.persist_data(path=file_location,
                                   server_id=instanceID,
                                   ip=floating_ip_address,
