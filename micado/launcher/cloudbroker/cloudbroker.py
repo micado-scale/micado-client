@@ -116,7 +116,7 @@ class CloudBrokerLauncher:
                 logger.info("CloudBroker instance started, instance id: %s", instanceID)
                 mstate = "starting"
                 while mstate != "running":
-                    sleep(20)
+                    sleep(5)
                     instance = self.get_instance(auth_url, instanceID)
                     mstate = self.getTagText(instance.getElementsByTagName('status').item(0).childNodes)
                 floating_ip_address = self.getTagText(instance.getElementsByTagName('external-ip-address').item(0).childNodes)
