@@ -4,3 +4,5 @@ pycryptodome==3.10.1
 python-novaclient==17.5.0
 openstacksdk==0.57.0
 ansible==4.0.0
+dicttoxml==1.7.4
+
