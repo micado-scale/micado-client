@@ -11,6 +11,7 @@ REQUIREMENTS = [
     "python-novaclient",
     "openstacksdk",
     "ansible",
+    "dicttoxml",
 ]
 
 setup(
