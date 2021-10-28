@@ -77,7 +77,7 @@ def refresh_openid_token(
     client_secret,
     refresh_token,
     grant_type="refresh_token",
-    scope="openid email profile",
+    scope="openid email profile eduperson_entitlement",
 ):
     """ Returns a new OpenID access token """
     body = {
