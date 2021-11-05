@@ -104,14 +104,13 @@ class Ansible:
             self._set_terraform_on()
 
     def _set_terraform_on(self):
-        with open(self.ansible_folder+'micado-master.yml', 'r') as f:
+        with open(self.ansible_folder+'host_vars/micado.yml', 'r') as f:
             yaml = YAML()
             micado_master = yaml.load(f)
-            for i in micado_master[0]['vars']:
-                if i.get("enable_terraform", None) is not None:
-                    i["enable_terraform"] = True
-                    break
-        with open(self.ansible_folder+'micado-master.yml', "w") as f:
+            if micado_master.get("enable_terraform", None) is not None:
+                micado_master["enable_terraform"] = True
+                break
+        with open(self.ansible_folder+'host_vars/micado.yml', "w") as f:
             yaml.dump(micado_master, f)
 
     def _create_micado_hostfile(self, ip):
@@ -139,12 +138,12 @@ class Ansible:
             micado_password ([type]): User defined MiCADO password
         """
         logger.info('Create and configure credential-micado-file...')
-        with open(self.ansible_folder+'sample-credentials-micado.yml', 'r') as f:
+        with open(self.ansible_folder+'credentials/sample-credentials-micado.yml', 'r') as f:
             yaml = YAML()
             credential_dict = yaml.load(f)
             credential_dict["authentication"]["username"] = micado_user
             credential_dict["authentication"]["password"] = micado_password
-        with open(self.ansible_folder+'credentials-micado.yml', "w") as f:
+        with open(self.ansible_folder+'credentials/credentials-micado.yml', "w") as f:
             yaml.dump(credential_dict, f)
 
     def _check_port_availability(self, ip, port):
@@ -185,7 +184,7 @@ class Ansible:
         """Deploy MiCADO master services via ansible
         """
         logger.info('Deploy MiCADO master')
-        subprocess.run(["ansible-playbook", "-i", "hosts.yml", "micado-master.yml"],
+        subprocess.run(["ansible-playbook", "micado.yml"],
                        cwd=self.ansible_folder,
                        check=True)
 
