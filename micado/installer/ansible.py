@@ -109,7 +109,6 @@ class Ansible:
             micado_master = yaml.load(f)
             if micado_master.get("enable_terraform", None) is not None:
                 micado_master["enable_terraform"] = True
-                break
         with open(self.ansible_folder+'host_vars/micado.yml', "w") as f:
             yaml.dump(micado_master, f)
 
