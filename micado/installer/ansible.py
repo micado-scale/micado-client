@@ -94,10 +94,10 @@ class Ansible:
             micado_password ([type]): User defined MiCADO password
         """
         logger.info('Create default Ansible MiCADO configuration...')
-        copyfile(self.ansible_folder+'sample-credentials-micado.yml',
-                 self.ansible_folder+'credentials-micado.yml')
+        copyfile(self.ansible_folder+'credentials/sample-credentials-micado.yml',
+                 self.ansible_folder+'credentials/credentials-micado.yml')
         copyfile(self.home+'credentials-cloud-api.yml',
-                 self.ansible_folder+'credentials-cloud-api.yml')
+                 self.ansible_folder+'credentials/credentials-cloud-api.yml')
         self._create_micado_hostfile(ip)
         self._create_micado_credential(micado_user, micado_password)
         if terraform:
