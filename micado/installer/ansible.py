@@ -124,10 +124,10 @@ class Ansible:
         with open(self.ansible_folder+'sample-hosts.yml', 'r') as f:
             yaml = YAML()
             host_dict = yaml.load(f)
-            host_dict["all"]["hosts"]["micado-target"]["ansible_ssh_private_key_file"] = self.home + \
+            host_dict["all"]["hosts"]["micado"]["ansible_ssh_private_key_file"] = self.home + \
                 'micado_cli_config_priv_key'
-            host_dict["all"]["hosts"]["micado-target"]["ansible_ssh_extra_args"] = '-o StrictHostKeyChecking=no'
-            host_dict["all"]["hosts"]["micado-target"]["ansible_host"] = ip
+            host_dict["all"]["hosts"]["micado"]["ansible_ssh_extra_args"] = '-o StrictHostKeyChecking=no'
+            host_dict["all"]["hosts"]["micado"]["ansible_host"] = ip
         with open(self.ansible_folder+'hosts.yml', "w") as f:
             yaml.dump(host_dict, f)
 
