@@ -106,7 +106,16 @@ class Ansible:
 
         # MiCADO hosts.yml
         self._create_micado_hostfile(ip)
-        self._create_micado_credential(micado_user, micado_password)
+
+        # Registry credentials
+        try:
+            copyfile(self.home + 'credentials-docker-registry.yml',
+                self.ansible_folder + 'credentials-docker-regsitry.yml')
+        except FileNotFoundError:
+            pass
+        else:
+            logger.info('Applying private Docker registry credentials...')
+
         if terraform:
             self._set_terraform_on()
 
