@@ -86,7 +86,7 @@ class Ansible:
         os.remove(self.tarfile_location)
 
     def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform):
-        """Configure ansible-micado.
+        """Configure ansible-micado, with credentials, etc...
 
         Args:
             ip (string): MiCADO master IP
@@ -94,10 +94,17 @@ class Ansible:
             micado_password ([type]): User defined MiCADO password
         """
         logger.info('Create default Ansible MiCADO configuration...')
-        copyfile(self.ansible_folder+'credentials/sample-credentials-micado.yml',
-                 self.ansible_folder+'credentials/credentials-micado.yml')
-        copyfile(self.home+'credentials-cloud-api.yml',
-                 self.ansible_folder+'credentials/credentials-cloud-api.yml')
+
+        # MiCADO credentials (WebUI, Submitter)
+        copyfile(self.ansible_folder + 'credentials/sample-credentials-micado.yml',
+                self.ansible_folder + 'credentials/credentials-micado.yml')
+        self._create_micado_credential(micado_user, micado_password)
+
+        # Cloud credentials
+        copyfile(self.home + 'credentials-cloud-api.yml',
+                self.ansible_folder + 'credentials/credentials-cloud-api.yml')
+
+        # MiCADO hosts.yml
         self._create_micado_hostfile(ip)
         self._create_micado_credential(micado_user, micado_password)
         if terraform:
