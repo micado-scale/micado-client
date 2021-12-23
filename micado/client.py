@@ -15,7 +15,7 @@ from .launcher.cloudbroker import CloudBrokerLauncher
 from .installer.ansible import Ansible
 
 from .models.application import Applications
-from .models.master import MicadoMaster
+from .models.micado import Micado
 
 from .exceptions import MicadoException
 
@@ -33,7 +33,7 @@ INSTALLER = {
 class MicadoClient:
     """The MiCADO Client
 
-    Builds and communicates with a MiCADO Master node
+    Builds and communicates with a MiCADO node
 
     Usage with a launcher:
 
@@ -41,7 +41,7 @@ class MicadoClient:
 
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="openstack", installer="ansible")
-        >>> client.master.create(
+        >>> client.micado.create(
         ...     auth_url='yourendpoint',
         ...     project_id='project_id',
         ...     image='image_name or image_id',
@@ -51,13 +51,13 @@ class MicadoClient:
         ...     security_group='security_group_name or security_group_id'
         ... )
         >>> client.applications.list()
-        >>> client.master.destroy()
+        >>> client.micado.destroy()
 
     b)
 
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="openstack", installer="ansible")
-        >>> master_id = client.master.create(
+        >>> micado_id = client.micado.create(
         ...     auth_url='yourendpoint',
         ...     project_id='project_id',
         ...     image='image_name or image_id',
@@ -67,22 +67,22 @@ class MicadoClient:
         ...     security_group='security_group_name or security_group_id'
         ... )
         >>> client.applications.list()
-        >>> << store your master_id >>
+        >>> << store your micado_id >>
         >>> << exit >>
         >>> -------------------------------------------------------------
         >>> << start >>
         >>> ...
-        >>> master_id = << retrieve master_id >>
+        >>> micado_id = << retrieve micado_id >>
         >>> client = MicadoClient(launcher="openstack", installer="ansible")
-        >>> client.master.attach(master_id = master_id)
+        >>> client.micado.attach(micado_id = micado_id)
         >>> client.applications.list()
-        >>> client.master.destroy()
+        >>> client.micado.destroy()
 
     c) 
 
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="cloudbroker", installer="ansible")
-        >>> client.master.create(
+        >>> client.micado.create(
         ...     auth_url='yourendpoint',
         ...     deployment_id='deployment_id',
         ...     instance_type_id='image_name or image_id',
@@ -90,10 +90,10 @@ class MicadoClient:
         ...     firewall_rule_set_id='firewall_rule_set_id',
         ... )
         >>> client.applications.list()
-        >>> client.master.destroy()
+        >>> client.micado.destroy()
 
 
-    Usage without a launcher i.e. MiCADO master is already created independently from the client library.
+    Usage without a launcher i.e. MiCADO is already created independently from the client library.
 
         >>> from micado import MicadoClient
         >>> client = MicadoClient(
@@ -154,13 +154,13 @@ class MicadoClient:
             self.api = SubmitterClient(*args, **kwargs)
 
     @classmethod
-    def from_master(cls):
+    def from_env(cls):
         """Usage:
             Ensure MICADO_API_ENDPOINT and MICADO_API_VERSION
             environment variables are set, then:
 
             >>> from micado import MicadoClient
-            >>> client = MicadoClient.from_master()
+            >>> client = MicadoClient.from_env()
         """
         try:
             submitter_endpoint = os.environ["MICADO_API_ENDPOINT"]
@@ -179,7 +179,7 @@ class MicadoClient:
         return Applications(client=self)
 
     @property
-    def master(self):
+    def micado(self):
         if not self.launcher:
             raise MicadoException("No launcher defined")
-        return MicadoMaster(client=self)
+        return Micado(client=self)

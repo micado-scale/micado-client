@@ -59,13 +59,13 @@ class Ansible:
         self._remove_know_host()
         self._get_ssh_fingerprint(server["ip"])
         self._check_ssh_availability(server["ip"])
-        self._deploy_micado_master()
+        self._deploy_micado()
         self._check_port_availability(server["ip"], 443)
-        logger.info('MiCADO master deployed!')
+        logger.info('MiCADO deployed!')
         self._get_self_signed_cert(server["ip"], server_id)
         self._store_data(server_id, self.api_version,
                          micado_user, micado_password)
-        logger.info(f"MiCADO master ID is: {server_id}")
+        logger.info(f"MiCADO ID is: {server_id}")
 
     def _download_ansible_micado(self):
         """Download ansible_micado from GitHub and write down to home directory.
@@ -89,7 +89,7 @@ class Ansible:
         """Configure ansible-micado, with credentials, etc...
 
         Args:
-            ip (string): MiCADO master IP
+            ip (string): MiCADO IP
             micado_user (string): User defined MiCADO user
             micado_password ([type]): User defined MiCADO password
         """
@@ -122,17 +122,17 @@ class Ansible:
     def _set_terraform_on(self):
         with open(self.ansible_folder+'host_vars/micado.yml', 'r') as f:
             yaml = YAML()
-            micado_master = yaml.load(f)
-            if micado_master.get("enable_terraform", None) is not None:
-                micado_master["enable_terraform"] = True
+            micado = yaml.load(f)
+            if micado.get("enable_terraform", None) is not None:
+                micado["enable_terraform"] = True
         with open(self.ansible_folder+'host_vars/micado.yml', "w") as f:
-            yaml.dump(micado_master, f)
+            yaml.dump(micado, f)
 
     def _create_micado_hostfile(self, ip):
         """Create Ansible hostfile.
 
         Args:
-            ip (string): MiCADO master IP
+            ip (string): MiCADO IP
         """
         logger.info('Create and configure Ansible host file...')
         with open(self.ansible_folder+'sample-hosts.yml', 'r') as f:
@@ -195,10 +195,10 @@ class Ansible:
             raise Exception('{} second passed, and still cannot reach {}.'.format(
                 attempts * sleep_time, port))
 
-    def _deploy_micado_master(self):
-        """Deploy MiCADO master services via ansible
+    def _deploy_micado(self):
+        """Deploy MiCADO services via ansible
         """
-        logger.info('Deploy MiCADO master')
+        logger.info('Deploy MiCADO')
         subprocess.run(["ansible-playbook", "micado.yml"],
                        cwd=self.ansible_folder,
                        check=True)
@@ -232,7 +232,7 @@ class Ansible:
             f.writelines(result.stdout.decode())
 
     def _get_self_signed_cert(self, ip, id):
-        """Get MiCADO master self signed SSL
+        """Get MiCADO self signed SSL
 
         Args:
             ip (string): Target IP
@@ -269,10 +269,10 @@ class Ansible:
 
     def get_api_version(self):
         """
-        Return the MiCADO Master Submitter API version. Only v2.0 supported.
+        Return the MiCADO Submitter API version. Only v2.0 supported.
 
         Returns:
-            string: MiCADO Master Submitter API version
+            string: MiCADO Submitter API version
         """
 
         return self.api_version

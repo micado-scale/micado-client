@@ -36,7 +36,7 @@ class DataHandling:
 
         Args:
             path (string): Persist file location
-            server_id (string): MiCADO master UUID
+            server_id (string): MiCADO UUID
         """
         content = None
         data = list()
@@ -52,13 +52,13 @@ class DataHandling:
                 content = yaml.load(f)
             # Handle edge cases when the file is empty or it has syntax error
             try:
-                content["masters"] += data
+                content["micados"] += data
             except:
                 content = dict()
-                content["masters"] = data
+                content["micados"] = data
         else:
             logger.debug("Data file does not exist. Creating new file...")
-            content = {'masters': data}
+            content = {'micados': data}
         with open(path, "w") as f:
             yaml.dump(content, f)
 
@@ -68,7 +68,7 @@ class DataHandling:
 
         Args:
             path (string): File location
-            server_id (string): MiCADO master UUID
+            server_id (string): MiCADO UUID
 
         Raises:
             Exception: return with exception when the uuid can't find in the file
@@ -83,7 +83,7 @@ class DataHandling:
                 content = yaml.load(f)
         except Exception as e:
             raise e
-        search = [i for i in content["masters"] if i.get(server_id, None)]
+        search = [i for i in content["micados"] if i.get(server_id, None)]
         if not search:
             logger.error("Can't find {} record!".format(server_id))
             raise Exception("Can't find property!")
@@ -96,7 +96,7 @@ class DataHandling:
 
         Args:
             path (string): File location
-            server_id (string): MiCADO master UUID
+            server_id (string): MiCADO UUID
         """
         content = None
         args = dict()
@@ -111,7 +111,7 @@ class DataHandling:
                 content = yaml.load(f)
             server = DataHandling.get_properties(path, server_id)
             args[server_id].update(server)
-            for i in content["masters"]:
+            for i in content["micados"]:
                 if i.get(server_id, None) != None:
                     i.update(args)
                     logger.debug("Data updated...")

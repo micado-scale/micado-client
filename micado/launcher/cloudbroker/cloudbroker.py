@@ -23,7 +23,7 @@ from micado.utils.utils import DataHandling, SSHKeyHandling
 import ruamel.yaml as yaml
 
 """
-Low-level methods for handling a MiCADO master with CloudBroker API
+Low-level methods for handling a MiCADO node with CloudBroker API
 """
 DEFAULT_PATH = Path.home() / ".micado-cli"
 DEFAULT_VERS = "0.9.1-rev1"
@@ -50,13 +50,13 @@ logger.addHandler(fh)
 
 class CloudBrokerLauncher:
     """
-    For launching a MiCADO Master with CloudBroker API
+    For launching a MiCADO node with CloudBroker API
     """
     home = str(Path(os.environ.get("MICADO_CLI_DIR", DEFAULT_PATH))) + '/'
 
     def launch(self, auth_url, deployment_id=None, instance_type_id=None, key_pair_id=None, firewall_rule_set_id=None, **kwargs):
         """
-        Create the MiCADO Master node
+        Create the MiCADO node
 
         Args:
             auth_url ([type]): [description]
@@ -89,7 +89,7 @@ class CloudBrokerLauncher:
             descr.setdefault('disable_autostop', 'true')
             descr.setdefault('isolated', 'true')
             name_id = uuid.uuid1()
-            name = 'MiCADO-Master-{}'.format(name_id.hex)
+            name = 'MiCADO-{}'.format(name_id.hex)
             descr['name'] = name
 
             logger.info('Creating CloudBroker VM...')
@@ -137,9 +137,9 @@ class CloudBrokerLauncher:
 
     def delete(self, id):
         """
-        Destroy the existing MiCADO master VM.
+        Destroy the existing MiCADO VM.
         Args:
-            id (string): The MiCADO master UUID.
+            id (string): The MiCADO UUID.
         Raises:
             MicadoException: Missing or incorrect data.
         """
@@ -148,7 +148,7 @@ class CloudBrokerLauncher:
             content = None
             with open(self.home + 'data.yml', mode='r') as f:
                 content = yaml.load(f)
-            search = [i for i in content["masters"] if i.get(id, None)]
+            search = [i for i in content["micados"] if i.get(id, None)]
             if not search:
                 logger.debug(
                     "This {} ID can not find in the data file.".format(id))
@@ -156,7 +156,7 @@ class CloudBrokerLauncher:
             else:
                 logger.debug("Remove {} record".format(search))
                 auth_url = search[0][id]["auth_url"]
-                content["masters"].remove(search[0])
+                content["micados"].remove(search[0])
                 with open(self.home + 'data.yml', mode='w') as f:
                     yaml.dump(content, f)
 

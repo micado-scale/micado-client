@@ -1,5 +1,5 @@
 """
-Higher-level methods to manage the MiCADO master
+Higher-level methods to manage the MiCADO node
 """
 import os
 from pathlib import Path
@@ -12,19 +12,19 @@ from .base import Model
 DEFAULT_PATH = Path.home() / ".micado-cli"
 
 
-class MicadoMaster(Model):
+class Micado(Model):
     home = str(Path(os.environ.get("MICADO_CLI_DIR", DEFAULT_PATH))) + '/'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     @property
-    def master_id(self):
-        return self.client.master_id
+    def micado_id(self):
+        return self.client.micado_id
 
-    @master_id.setter
-    def master_id(self, master_id):
-        self.client.master_id = master_id
+    @micado_id.setter
+    def micado_id(self, micado_id):
+        self.client.micado_id = micado_id
 
     @property
     def micado_ip(self):
@@ -57,7 +57,7 @@ class MicadoMaster(Model):
             SubmitterClient: return SubmitterClient
         """
         server = DataHandling.get_properties(
-            f'{self.home}data.yml', self.master_id)
+            f'{self.home}data.yml', self.micado_id)
         self.micado_ip = server["ip"]
         return SubmitterClient(endpoint=server["endpoint"],
                                version=server["api_version"],
@@ -65,18 +65,18 @@ class MicadoMaster(Model):
                                auth=(server["micado_user"],
                                      server["micado_password"]))
 
-    def attach(self, master_id):
-        """Configure the master object to handle the instance
+    def attach(self, micado_id):
+        """Configure the micado object to handle the instance
         created by the def:create()
 
         Args:
-            master_id (string): master ID returned by def:create()
+            micado_id (string): micado ID returned by def:create()
         """
-        self.master_id = master_id
+        self.micado_id = micado_id
         self.api = self.init_api()
 
     def create(self, **kwargs):
-        """Creates a new MiCADO master VM and deploy MiCADO service on it.
+        """Creates a new MiCADO VM and deploy MiCADO services on it.
 
         Args:
             auth_url (string): Authentication URL for the NOVA
@@ -100,7 +100,7 @@ class MicadoMaster(Model):
 
         Usage:
 
-            >>> client.master.create(
+            >>> client.micado.create(
             ...     auth_url='yourendpoint',
             ...     project_id='project_id',
             ...     image='image_name or image_id',
@@ -111,31 +111,31 @@ class MicadoMaster(Model):
             ... )
 
         Returns:
-            string: ID of MiCADO master
+            string: ID of MiCADO
 
         """
         try:
             _micado = self.launcher.launch(**kwargs)
-            self.master_id = _micado.id
+            self.micado_id = _micado.id
             self.micado_ip = _micado.ip
 
-            self.installer.deploy(self.master_id, **kwargs)
+            self.installer.deploy(self.micado_id, **kwargs)
             self.api = self.init_api()
         except Exception as e:
-            if hasattr(locals()['self'], 'master_id'):
-                self.launcher.delete(self.master_id)
+            if hasattr(locals()['self'], 'micado_id'):
+                self.launcher.delete(self.micado_id)
             raise
-        return self.master_id
+        return self.micado_id
 
     def destroy(self):
-        """Destroy running applications and the existing MiCADO master VM.
+        """Destroy running applications and the existing MiCADO VM.
 
         Usage:
 
-            >>> client.master.destroy()
+            >>> client.micado.destroy()
 
         """
         self.api = self.init_api()
         self.api._destroy()
         self.api = None
-        self.launcher.delete(self.master_id)
+        self.launcher.delete(self.micado_id)

@@ -22,7 +22,7 @@ from openstack import connection
 from .auth import AUTH_TYPES
 from micado.types.micado import MicadoInfo
 
-"""Low-level methods for handling a MiCADO master with OpenStackSDK
+"""Low-level methods for handling a MiCADO node with OpenStackSDK
 
 """
 DEFAULT_PATH = Path.home() / ".micado-cli"
@@ -49,14 +49,14 @@ logger.addHandler(fh)
 
 
 class OpenStackLauncher:
-    """For launching a MiCADO Master with OpenStackSDK
+    """For launching a MiCADO node with OpenStackSDK
 
     """
     home = str(Path(os.environ.get("MICADO_CLI_DIR", DEFAULT_PATH))) + '/'
 
     def launch(self, auth_url, image, flavor, network, keypair, security_group='all', region=None,
                user_domain_name='Default', project_id=None, **kwargs):
-        """Create the MiCADO Master node
+        """Create the MiCADO node
 
         Args:
             auth_url ([type]): [description]
@@ -112,7 +112,7 @@ class OpenStackLauncher:
             """.format(pub_key)
             name_id = uuid.uuid1()
             server = conn_nova.servers.create(
-                'MiCADO-Master-{}'.format(name_id.hex),
+                'MiCADO-{}'.format(name_id.hex),
                 image.id,
                 flavor.id,
                 security_groups=[security_group.id],
@@ -120,7 +120,7 @@ class OpenStackLauncher:
                 key_name=keypair.name,
                 userdata=cloud_init_config)
             # server = conn.compute.create_server(
-            #     name='MiCADO-Master-{}'.format(name_id.hex), image_id=image.id, flavor_id=flavor.id,
+            #     name='MiCADO-{}'.format(name_id.hex), image_id=image.id, flavor_id=flavor.id,
             # key_name=keypair.name, userdata=cloud_init_config, timeout=300,
             # networks=[{"uuid": network.id}], security_groups=[{"name":
             # security_group.id}])
@@ -144,10 +144,10 @@ class OpenStackLauncher:
             raise
 
     def delete(self, id):
-        """Destroy the existing MiCADO master VM.
+        """Destroy the existing MiCADO VM.
 
         Args:
-            id (string): The MiCADO master UUID.
+            id (string): The MiCADO UUID.
 
         Raises:
             MicadoException: Missing or incorrect data.
@@ -161,7 +161,7 @@ class OpenStackLauncher:
             content = None
             with open(self.home + 'data.yml', mode='r') as f:
                 content = yaml.load(f)
-            search = [i for i in content["masters"] if i.get(id, None)]
+            search = [i for i in content["micados"] if i.get(id, None)]
             if not search:
                 logger.debug(
                     "This {} ID can not find in the data file.".format(id))
@@ -172,7 +172,7 @@ class OpenStackLauncher:
                 region_name = search[0][id]["region_name"]
                 project_id = search[0][id]["project_id"]
                 user_domain_name = search[0][id]["user_domain_name"]
-                content["masters"].remove(search[0])
+                content["micados"].remove(search[0])
                 with open(self.home + 'data.yml', mode='w') as f:
                     yaml.dump(content, f)
             conn, _ = self._get_connection(
