@@ -88,7 +88,7 @@ class ApplicationMixin:
         """Deletes all application in MiCADO
 
         This should normally only be called by a launcher that
-        is ready to destroy its master node
+        is ready to destroy the entire MiCADO stack
         """
         app_ids = self.applications()
         for app in app_ids:
