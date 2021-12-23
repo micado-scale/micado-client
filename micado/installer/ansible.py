@@ -48,24 +48,22 @@ class Ansible:
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
     tarfile_location = f'{home}ansible-micado-{micado_version}.tar.gz'
 
-    def deploy(self, server_id, micado_user='admin', micado_password='admin', terraform=False, **kwargs):
-        server = DataHandling.get_properties(
-            self.home+'/data.yml', server_id)
+    def deploy(self, micado, micado_user='admin', micado_password='admin', terraform=False, **kwargs):
         self._download_ansible_micado()
         self._extract_tar()
         self._configure_ansible_playbook(
-            server["ip"], micado_user, micado_password, terraform)
-        self._check_port_availability(server["ip"], 22)
+            micado.ip, micado_user, micado_password, terraform)
+        self._check_port_availability(micado.ip, 22)
         self._remove_know_host()
-        self._get_ssh_fingerprint(server["ip"])
-        self._check_ssh_availability(server["ip"])
+        self._get_ssh_fingerprint(micado.ip)
+        self._check_ssh_availability(micado.ip)
         self._deploy_micado()
-        self._check_port_availability(server["ip"], 443)
+        self._check_port_availability(micado.ip, 443)
         logger.info('MiCADO deployed!')
-        self._get_self_signed_cert(server["ip"], server_id)
-        self._store_data(server_id, self.api_version,
+        self._get_self_signed_cert(micado.ip, micado.id)
+        self._store_data(micado.id, self.api_version,
                          micado_user, micado_password)
-        logger.info(f"MiCADO ID is: {server_id}")
+        logger.info(f"MiCADO ID is: {micado.id}")
 
     def _download_ansible_micado(self):
         """Download ansible_micado from GitHub and write down to home directory.

@@ -119,7 +119,7 @@ class Micado(Model):
             self.micado_id = _micado.id
             self.micado_ip = _micado.ip
 
-            self.installer.deploy(self.micado_id, **kwargs)
+            self.installer.deploy(_micado, **kwargs)
             self.api = self.init_api()
         except Exception as e:
             if hasattr(locals()['self'], 'micado_id'):
