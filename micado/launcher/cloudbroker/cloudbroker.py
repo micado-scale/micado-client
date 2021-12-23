@@ -17,6 +17,7 @@ from dicttoxml import dicttoxml
 from collections import OrderedDict
 import requests, json
 import base64
+from micado.types.micado import MicadoInfo
 from micado.exceptions import MicadoException
 from micado.utils.utils import DataHandling, SSHKeyHandling
 import ruamel.yaml as yaml
@@ -65,7 +66,7 @@ class CloudBrokerLauncher:
             firewall_rule_set_id ([type]): [description]
 
         Returns:
-            string: MiCADO master ID
+            MicadoInfo: Dataclass with MiCADO ID and IP
         """
         instanceID = ""
 
@@ -121,7 +122,7 @@ class CloudBrokerLauncher:
                     mstate = self.getTagText(instance.getElementsByTagName('status').item(0).childNodes)
                 floating_ip_address = self.getTagText(instance.getElementsByTagName('external-ip-address').item(0).childNodes)
                 self._persist_data(floating_ip_address, instanceID, auth_url, deployment_id, instance_type_id, key_pair_id, firewall_rule_set_id)
-                return instanceID
+                return MicadoInfo(instanceID, floating_ip_address)
             else:
                 errormsg = 'Failed to create CloudBroker instance, request status code {0}, response: {1}'.format(r.status_code, r.text)
                 logger.debug(errormsg)

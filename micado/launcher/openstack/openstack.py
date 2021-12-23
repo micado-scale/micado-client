@@ -20,6 +20,7 @@ import openstack
 from openstack import connection
 
 from .auth import AUTH_TYPES
+from micado.types.micado import MicadoInfo
 
 """Low-level methods for handling a MiCADO master with OpenStackSDK
 
@@ -77,7 +78,7 @@ class OpenStackLauncher:
             MicadoException: [description]
 
         Returns:
-            string: MiCADO master ID
+            MicadoInfo: Dataclass with MiCADO ID and IP
         """
         try:
             pub_key = SSHKeyHandling.get_pub_key(self.home)
@@ -131,7 +132,7 @@ class OpenStackLauncher:
                                  ips=ip.floating_ip_address, timeout=600)
             self._persist_data(ip.floating_ip_address, server.id,
                                auth_url, region, project_id, user_domain_name)
-            return server.id
+            return MicadoInfo(server.id, ip.floating_ip_address)
         except MicadoException as e:
             logger.error(f"Exception cought: {e}")
             raise

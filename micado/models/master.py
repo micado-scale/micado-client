@@ -27,6 +27,14 @@ class MicadoMaster(Model):
         self.client.master_id = master_id
 
     @property
+    def micado_ip(self):
+        return self.client.micado_ip
+
+    @micado_ip.setter
+    def micado_ip(self, micado_ip):
+        self.client.micado_ip = micado_ip
+
+    @property
     def launcher(self):
         return self.client.launcher
 
@@ -50,6 +58,7 @@ class MicadoMaster(Model):
         """
         server = DataHandling.get_properties(
             f'{self.home}data.yml', self.master_id)
+        self.micado_ip = server["ip"]
         return SubmitterClient(endpoint=server["endpoint"],
                                version=server["api_version"],
                                verify=server["cert_path"],
@@ -106,7 +115,10 @@ class MicadoMaster(Model):
 
         """
         try:
-            self.master_id = self.launcher.launch(**kwargs)
+            _micado = self.launcher.launch(**kwargs)
+            self.master_id = _micado.id
+            self.micado_ip = _micado.ip
+
             self.installer.deploy(self.master_id, **kwargs)
             self.api = self.init_api()
         except Exception as e:
