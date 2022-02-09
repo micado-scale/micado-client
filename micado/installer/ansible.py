@@ -108,7 +108,7 @@ class Ansible:
         # Registry credentials
         try:
             copyfile(self.home + 'credentials-docker-registry.yml',
-                self.ansible_folder + 'credentials-docker-registry.yml')
+                self.ansible_folder + 'credentials/credentials-docker-registry.yml')
         except FileNotFoundError:
             pass
         else:
