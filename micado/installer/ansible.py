@@ -18,7 +18,7 @@ from ruamel.yaml import YAML
 
 
 DEFAULT_PATH = Path.home() / ".micado-cli"
-DEFAULT_VERS = "0.9.1-rev1"
+DEFAULT_VERS = "v0.9.2-rc2"
 API_VERS = "v2.0"
 
 logger = logging.getLogger(__name__)
@@ -69,8 +69,8 @@ class Ansible:
         """Download ansible_micado from GitHub and write down to home directory.
         """
         logger.info('Download Ansible MiCADO...')
-        url = f'https://github.com/micado-scale/ansible-micado/releases/download/v{self.micado_version}/ansible-micado-{self.micado_version}.tar.gz'
-        r = requests.get(url)
+        url = f'https://github.com/micado-scale/ansible-micado/tarball/{self.micado_version}'
+        r = requests.get(url, stream=True)
         with open(self.tarfile_location, 'wb') as f:
             f.write(r.content)
 
@@ -79,8 +79,10 @@ class Ansible:
         """
         logger.info('Extract Ansible MiCADO...')
         tar_file = tarfile.open(self.tarfile_location)
+        dir_to_rename = tar_file.firstmember.name
         tar_file.extractall(self.home)
         tar_file.close()
+        Path(dir_to_rename).rename(f'ansible-micado-{self.micado_version}')
         os.remove(self.tarfile_location)
 
     def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform):
