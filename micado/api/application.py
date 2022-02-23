@@ -3,8 +3,8 @@
 Low-level methods for managing applications in MiCADO
 
 """
-from ..types import ApplicationInfo
-
+from micado.types import ApplicationInfo
+from micado.exceptions import detailed_raise_for_status
 
 class ApplicationMixin:
     def applications(self):
@@ -15,7 +15,7 @@ class ApplicationMixin:
         """
         url = self._url("/applications/")
         resp = self.get(url)
-        resp.raise_for_status()
+        detailed_raise_for_status(resp)
         return resp.json()["applications"]
 
     def inspect_app(self, app_id):
@@ -29,7 +29,7 @@ class ApplicationMixin:
         """
         url = self._url(f"/applications/{app_id}/")
         resp = self.get(url)
-        resp.raise_for_status()
+        detailed_raise_for_status(resp)
         return resp.json()
 
     def create_app(
@@ -64,7 +64,7 @@ class ApplicationMixin:
 
         json_data = ApplicationInfo(adt, url, params, dryrun)
         resp = self.post(url, json=json_data)
-        resp.raise_for_status()
+        detailed_raise_for_status(resp)
         return resp.json()
 
     def delete_app(self, app_id, force=False):
@@ -81,14 +81,14 @@ class ApplicationMixin:
         json_data = {"force": force}
         resp = self.delete(url, json=json_data)
         if not force:
-            resp.raise_for_status()
+            detailed_raise_for_status(resp)
         return resp.json()
 
     def _destroy(self):
         """Deletes all application in MiCADO
 
         This should normally only be called by a launcher that
-        is ready to destroy its master node
+        is ready to destroy the entire MiCADO stack
         """
         app_ids = self.applications()
         for app in app_ids:
