@@ -48,7 +48,7 @@ class Ansible:
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
     tarfile_location = f'{home}ansible-micado-{micado_version}.tar.gz'
 
-    def deploy(self, micado, micado_user='admin', micado_password='admin', terraform=True, occopus=False **kwargs):
+    def deploy(self, micado, micado_user='admin', micado_password='admin', terraform=True, occopus=False, **kwargs):
         self._download_ansible_micado()
         self._extract_tar()
         self._configure_ansible_playbook(
