@@ -48,11 +48,11 @@ class Ansible:
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
     tarfile_location = f'{home}ansible-micado-{micado_version}.tar.gz'
 
-    def deploy(self, micado, micado_user='admin', micado_password='admin', terraform=False, **kwargs):
+    def deploy(self, micado, micado_user='admin', micado_password='admin', terraform=True, occopus=False **kwargs):
         self._download_ansible_micado()
         self._extract_tar()
         self._configure_ansible_playbook(
-            micado.ip, micado_user, micado_password, terraform)
+            micado.ip, micado_user, micado_password, terraform, occopus)
         self._check_port_availability(micado.ip, 22)
         self._remove_know_host()
         self._get_ssh_fingerprint(micado.ip)
@@ -86,7 +86,7 @@ class Ansible:
         Path(f'{self.home}/{dir_to_rename}').rename(f'{self.home}ansible-micado-{self.micado_version}')
         os.remove(self.tarfile_location)
 
-    def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform):
+    def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform, occopus):
         """Configure ansible-micado, with credentials, etc...
 
         Args:
@@ -117,15 +117,15 @@ class Ansible:
         else:
             logger.info('Applying private Docker registry credentials...')
 
-        if terraform:
-            self._set_terraform_on()
+        self._set_cloud_orchestrator("enable_terraform", terraform)
+        self._set_cloud_orchestrator("enable_occopus", occopus)
 
-    def _set_terraform_on(self):
+    def _set_cloud_orchestrator(self, key, enable):
         with open(self.ansible_folder+'host_vars/micado.yml', 'r') as f:
             yaml = YAML()
             micado = yaml.load(f)
-            if micado.get("enable_terraform", None) is not None:
-                micado["enable_terraform"] = True
+            if micado.get(key, None) is not None:
+                micado[key] = enable
         with open(self.ansible_folder+'host_vars/micado.yml', "w") as f:
             yaml.dump(micado, f)
 
