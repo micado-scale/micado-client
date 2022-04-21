@@ -9,7 +9,7 @@ import tarfile
 import time
 import uuid
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, rmtree
 
 import requests
 from micado.utils.utils import DataHandling
@@ -18,7 +18,7 @@ from ruamel.yaml import YAML
 
 
 DEFAULT_PATH = Path.home() / ".micado-cli"
-DEFAULT_VERS = "v0.9.2-rc2"
+DEFAULT_VERS = "v0.10.0"
 API_VERS = "v2.0"
 
 logger = logging.getLogger(__name__)
@@ -82,7 +82,8 @@ class Ansible:
         dir_to_rename = tar_file.firstmember.name
         tar_file.extractall(self.home)
         tar_file.close()
-        Path(dir_to_rename).rename(f'ansible-micado-{self.micado_version}')
+        rmtree(f'{self.home}ansible-micado-{self.micado_version}', ignore_errors=True)
+        Path(f'{self.home}/{dir_to_rename}').rename(f'{self.home}ansible-micado-{self.micado_version}')
         os.remove(self.tarfile_location)
 
     def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform):
