@@ -78,7 +78,7 @@ class MicadoClient:
         >>> client.applications.list()
         >>> client.micado.destroy()
 
-    c) 
+    c)
 
         >>> from micado import MicadoClient
         >>> client = MicadoClient(launcher="cloudbroker", installer="ansible")

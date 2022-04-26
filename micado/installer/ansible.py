@@ -3,7 +3,9 @@
 import logging
 import logging.config
 import os
+import secrets
 import socket
+import string
 import subprocess
 import tarfile
 import time
@@ -12,10 +14,9 @@ from pathlib import Path
 from shutil import copyfile, rmtree
 
 import requests
-from micado.utils.utils import DataHandling
 from micado.exceptions import MicadoException
+from micado.utils.utils import DataHandling
 from ruamel.yaml import YAML
-
 
 DEFAULT_PATH = Path.home() / ".micado-cli"
 DEFAULT_VERS = "v0.10.0"
@@ -48,7 +49,11 @@ class Ansible:
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
     tarfile_location = f'{home}ansible-micado-{micado_version}.tar.gz'
 
-    def deploy(self, micado, micado_user='admin', micado_password='admin', terraform=True, occopus=False, **kwargs):
+    def deploy(self, micado, micado_user='admin', terraform=True, occopus=False, **kwargs):
+        micado_password = kwargs.get('micado_password')
+        if micado_password == None:
+            alphabet = string.ascii_letters + string.digits
+            micado_password = ''.join(secrets.choice(alphabet) for i in range(14))
         self._download_ansible_micado()
         self._extract_tar()
         self._configure_ansible_playbook(
@@ -82,8 +87,10 @@ class Ansible:
         dir_to_rename = tar_file.firstmember.name
         tar_file.extractall(self.home)
         tar_file.close()
-        rmtree(f'{self.home}ansible-micado-{self.micado_version}', ignore_errors=True)
-        Path(f'{self.home}/{dir_to_rename}').rename(f'{self.home}ansible-micado-{self.micado_version}')
+        rmtree(f'{self.home}ansible-micado-{self.micado_version}',
+               ignore_errors=True)
+        Path(f'{self.home}/{dir_to_rename}').rename(
+            f'{self.home}ansible-micado-{self.micado_version}')
         os.remove(self.tarfile_location)
 
     def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform, occopus):
@@ -98,12 +105,12 @@ class Ansible:
 
         # MiCADO credentials (WebUI, Submitter)
         copyfile(self.ansible_folder + 'credentials/sample-credentials-micado.yml',
-                self.ansible_folder + 'credentials/credentials-micado.yml')
+                 self.ansible_folder + 'credentials/credentials-micado.yml')
         self._create_micado_credential(micado_user, micado_password)
 
         # Cloud credentials
         copyfile(self.home + 'credentials-cloud-api.yml',
-                self.ansible_folder + 'credentials/credentials-cloud-api.yml')
+                 self.ansible_folder + 'credentials/credentials-cloud-api.yml')
 
         # MiCADO hosts.yml
         self._create_micado_hostfile(ip)
@@ -111,7 +118,7 @@ class Ansible:
         # Registry credentials
         try:
             copyfile(self.home + 'credentials-docker-registry.yml',
-                self.ansible_folder + 'credentials/credentials-docker-registry.yml')
+                     self.ansible_folder + 'credentials/credentials-docker-registry.yml')
         except FileNotFoundError:
             pass
         else:
