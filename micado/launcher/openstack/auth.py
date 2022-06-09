@@ -73,16 +73,13 @@ class AppCredAuthenticator(Authenticator):
 def refresh_openid_token(
     *,
     url,
-    client_id,
-    client_secret,
     refresh_token,
     grant_type="refresh_token",
-    scope="openid email profile",
+    scope="openid email profile voperson_id eduperson_entitlement",
 ):
     """ Returns a new OpenID access token """
     body = {
-        "client_id": client_id,
-        "client_secret": client_secret,
+        "client_id": "token-portal",
         "grant_type": grant_type,
         "refresh_token": refresh_token,
         "scope": scope,
@@ -90,7 +87,7 @@ def refresh_openid_token(
 
     try:
         response = requests.post(
-            url, data=body, auth=(client_id, client_secret)
+            url, data=body
         ).json()
         return response["access_token"]
     except KeyError:
