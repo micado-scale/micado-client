@@ -47,9 +47,10 @@ class AnsibleInstaller:
     api_version = os.environ.get("API_VERS", API_VERS)
     home = str(Path(os.environ.get("MICADO_DIR", DEFAULT_PATH)))+'/'
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
-    tarfile_location = f'{home}ansible-micado-{micado_version}.tar.gz'
 
     def deploy(self, micado, micado_user='admin', terraform=True, occopus=False, **kwargs):
+        self.id = micado.id
+        self.tar_path = f"{self.home}{self.id}-micado-{self.micado_version}.tar.gz"
         micado_password = kwargs.get('micado_password')
         if micado_password == None:
             alphabet = string.ascii_letters + string.digits
@@ -76,14 +77,14 @@ class AnsibleInstaller:
         logger.info('Download Ansible MiCADO...')
         url = f'https://github.com/micado-scale/ansible-micado/tarball/{self.micado_version}'
         r = requests.get(url, stream=True)
-        with open(self.tarfile_location, 'wb') as f:
+        with open(self.tar_path, 'wb') as f:
             f.write(r.content)
 
     def _extract_tar(self):
         """Extract tar
         """
         logger.info('Extract Ansible MiCADO...')
-        tar_file = tarfile.open(self.tarfile_location)
+        tar_file = tarfile.open(self.tar_path)
         dir_to_rename = tar_file.firstmember.name
         tar_file.extractall(self.home)
         tar_file.close()
@@ -91,7 +92,7 @@ class AnsibleInstaller:
                ignore_errors=True)
         Path(f'{self.home}/{dir_to_rename}').rename(
             f'{self.home}ansible-micado-{self.micado_version}')
-        os.remove(self.tarfile_location)
+        os.remove(self.tar_path)
 
     def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform, occopus):
         """Configure ansible-micado, with credentials, etc...
