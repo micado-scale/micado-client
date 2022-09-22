@@ -10,6 +10,7 @@ REQUIREMENTS = [
     "pycryptodome",
     "python-novaclient",
     "openstacksdk",
+    "ansible",
     "ansible-runner",
     "dicttoxml",
 ]
@@ -21,7 +22,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Márk Emődi & Jay DesLauriers",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     url="https://github.com/micado-scale/micado-client",
     packages=find_packages(exclude=["tests"]),
     install_requires=REQUIREMENTS,
@@ -30,7 +31,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
 )
