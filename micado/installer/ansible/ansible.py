@@ -42,7 +42,7 @@ logger.addHandler(ch)
 logger.addHandler(fh)
 
 
-class Ansible:
+class AnsibleInstaller:
     micado_version = os.environ.get("MICADO_VERS", DEFAULT_VERS)
     api_version = os.environ.get("API_VERS", API_VERS)
     home = str(Path(os.environ.get("MICADO_DIR", DEFAULT_PATH)))+'/'

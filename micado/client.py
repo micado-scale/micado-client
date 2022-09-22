@@ -12,7 +12,7 @@ from .launcher.occopus import OccopusLauncher
 from .launcher.openstack import OpenStackLauncher
 from .launcher.cloudbroker import CloudBrokerLauncher
 
-from .installer.ansible import Ansible
+from .installer.ansible import AnsibleInstaller
 
 from .models.application import Applications
 from .models.micado import Micado
@@ -26,7 +26,7 @@ LAUNCHERS = {
 }
 
 INSTALLER = {
-    "ansible": Ansible,
+    "ansible": AnsibleInstaller,
 }
 
 
