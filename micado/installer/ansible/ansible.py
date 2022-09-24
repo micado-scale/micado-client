@@ -103,21 +103,30 @@ class AnsibleInstaller:
 
         return extra_variables
 
-    def _create_micado_credential(self, micado_user, micado_password):
+    def _generate_credential_data(self, micado_user, micado_password):
         """Create MiCADO credential file.
 
         Args:
             micado_user (string): User defined MiCADO user
             micado_password ([type]): User defined MiCADO password
         """
-        logger.info('Create and configure credential-micado-file...')
-        with open(self.ansible_folder+'credentials/sample-credentials-micado.yml', 'r') as f:
+        logger.info('Loading MiCADO credentials...')
+        if micado_password is None:
+            alphabet = string.ascii_letters + string.digits
+            micado_password = ''.join(secrets.choice(alphabet) for i in range(14))
+        
+        auth_dict = {"authentication": {"username": micado_user, "password": micado_password}}
+
+        micado_cred_path = micado_cli_dir / "credentials-micado.yml"
+        if not micado_cred_path.is_file():
+            return auth_dict
+
+        with open(micado_cred_path, 'r') as f:
             yaml = YAML()
             credential_dict = yaml.load(f)
-            credential_dict["authentication"]["username"] = micado_user
-            credential_dict["authentication"]["password"] = micado_password
-        with open(self.ansible_folder+'credentials/credentials-micado.yml', "w") as f:
-            yaml.dump(credential_dict, f)
+            credential_dict.update(auth_dict)
+        
+        return credential_dict
 
     def _check_port_availability(self, ip, port):
         """Check the given port availability.
