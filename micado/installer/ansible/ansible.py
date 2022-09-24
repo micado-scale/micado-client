@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import logging
 import logging.config
 import os
@@ -7,11 +5,8 @@ import secrets
 import socket
 import string
 import subprocess
-import tarfile
 import time
-import uuid
 from pathlib import Path
-from shutil import copyfile, rmtree
 
 from micado.installer.ansible.playbook import Playbook
 from micado.exceptions import MicadoException
@@ -19,7 +14,7 @@ from micado.utils.utils import DataHandling
 from ruamel.yaml import YAML
 
 DEFAULT_PATH = Path.home() / ".micado-cli"
-DEFAULT_VERS = "v0.10.0"
+DEFAULT_VERS = "v0.11.0"
 API_VERS = "v2.0"
 
 logger = logging.getLogger(__name__)
@@ -46,7 +41,6 @@ class AnsibleInstaller:
     micado_version = os.environ.get("MICADO_VERS", DEFAULT_VERS)
     api_version = os.environ.get("API_VERS", API_VERS)
     home = str(Path(os.environ.get("MICADO_DIR", DEFAULT_PATH)))+'/'
-    ansible_folder = home+'ansible-micado-'+micado_version+'/'
 
     def deploy(self, micado, micado_user='admin', micado_password=None, terraform=True, occopus=False, **kwargs):     
         instance_ip = micado.ip
@@ -57,15 +51,26 @@ class AnsibleInstaller:
         self._remove_know_host()
         self._get_ssh_fingerprint(instance_ip)
         self._check_ssh_availability(instance_ip)
+
+        logger.info('Generating playbook inputs...')
         hosts = self._generate_inventory(instance_ip)
         extravars = self._generate_extravars(micado_user, micado_password, terraform, occopus)
+
+        logger.info('Running playbook...')
         playbook = Playbook(self.micado_version, micado_id, self.home)
         runner = playbook.run(hosts, extravars)
+        if runner.rc == 0:
+            logger.info('Playbook complete.')
+        else:
+            logger.error(runner.status, runner.stderr)
+            raise MicadoException(runner.status, runner.stderr)
+
+        self._check_port_availability(instance_ip, 443)
         logger.info('MiCADO deployed!')
-        self._get_self_signed_cert(micado.ip, micado.id)
-        self._store_data(micado.id, self.api_version,
+        self._get_self_signed_cert(instance_ip, micado_id)
+        self._store_data(micado_id, self.api_version,
                          micado_user, micado_password)
-        logger.info(f"MiCADO ID is: {micado.id}")
+        logger.info(f"MiCADO ID is: {micado_id}")
 
 
     def _generate_inventory(self, ip):
@@ -161,7 +166,7 @@ class AnsibleInstaller:
         if attempts == max_attempts:
             raise Exception('{} second passed, and still cannot reach {}.'.format(
                 attempts * sleep_time, port))
-
+        
         
 
     def _remove_know_host(self):
