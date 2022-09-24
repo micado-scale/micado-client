@@ -48,6 +48,7 @@ class AnsibleInstaller:
         micado_password=None,
         terraform=True,
         occopus=False,
+        **kwargs,
     ):
         instance_ip = micado.ip
         micado_id = micado.id
