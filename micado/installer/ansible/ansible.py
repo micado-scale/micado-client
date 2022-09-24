@@ -13,7 +13,7 @@ import uuid
 from pathlib import Path
 from shutil import copyfile, rmtree
 
-import requests
+from micado.installer.ansible.playbook import Playbook
 from micado.exceptions import MicadoException
 from micado.utils.utils import DataHandling
 from ruamel.yaml import YAML
@@ -48,111 +48,60 @@ class AnsibleInstaller:
     home = str(Path(os.environ.get("MICADO_DIR", DEFAULT_PATH)))+'/'
     ansible_folder = home+'ansible-micado-'+micado_version+'/'
 
-    def deploy(self, micado, micado_user='admin', terraform=True, occopus=False, **kwargs):
-        self.id = micado.id
-        self.tar_path = f"{self.home}{self.id}-micado-{self.micado_version}.tar.gz"
-        micado_password = kwargs.get('micado_password')
-        if micado_password == None:
-            alphabet = string.ascii_letters + string.digits
-            micado_password = ''.join(secrets.choice(alphabet) for i in range(14))
-        self._download_ansible_micado()
-        self._extract_tar()
-        self._configure_ansible_playbook(
-            micado.ip, micado_user, micado_password, terraform, occopus)
-        self._check_port_availability(micado.ip, 22)
+    def deploy(self, micado, micado_user='admin', micado_password=None, terraform=True, occopus=False, **kwargs):     
+        instance_ip = micado.ip
+        micado_id = micado.id
+        
+        logger.info("Check instance availability...")
+        self._check_port_availability(instance_ip, 22)
         self._remove_know_host()
-        self._get_ssh_fingerprint(micado.ip)
-        self._check_ssh_availability(micado.ip)
-        self._deploy_micado()
-        self._check_port_availability(micado.ip, 443)
+        self._get_ssh_fingerprint(instance_ip)
+        self._check_ssh_availability(instance_ip)
+        hosts = self._generate_inventory(instance_ip)
+        extravars = self._generate_extravars(micado_user, micado_password, terraform, occopus)
+        playbook = Playbook(self.micado_version, micado_id, self.home)
+        runner = playbook.run(hosts, extravars)
         logger.info('MiCADO deployed!')
         self._get_self_signed_cert(micado.ip, micado.id)
         self._store_data(micado.id, self.api_version,
                          micado_user, micado_password)
         logger.info(f"MiCADO ID is: {micado.id}")
 
-    def _download_ansible_micado(self):
-        """Download ansible_micado from GitHub and write down to home directory.
-        """
-        logger.info('Download Ansible MiCADO...')
-        url = f'https://github.com/micado-scale/ansible-micado/tarball/{self.micado_version}'
-        r = requests.get(url, stream=True)
-        with open(self.tar_path, 'wb') as f:
-            f.write(r.content)
 
-    def _extract_tar(self):
-        """Extract tar
-        """
-        logger.info('Extract Ansible MiCADO...')
-        tar_file = tarfile.open(self.tar_path)
-        dir_to_rename = tar_file.firstmember.name
-        tar_file.extractall(self.home)
-        tar_file.close()
-        rmtree(f'{self.home}ansible-micado-{self.micado_version}',
-               ignore_errors=True)
-        Path(f'{self.home}/{dir_to_rename}').rename(
-            f'{self.home}ansible-micado-{self.micado_version}')
-        os.remove(self.tar_path)
+    def _generate_inventory(self, ip):
+        """Generate hosts info for Playbook
 
-    def _configure_ansible_playbook(self, ip, micado_user, micado_password, terraform, occopus):
+        Args:
+            ip (string): MiCADO IP
+        """
+        host_dict = {}        
+        host_dict["ansible_ssh_private_key_file"] = f"{self.home}micado_cli_config_priv_key"
+        host_dict["ansible_host"] = ip
+        hosts = {"all": {"hosts": {"micado": host_dict}}}
+
+        return hosts
+
+    def _generate_extravars(self, micado_user, micado_password, terraform, occopus):
         """Configure ansible-micado, with credentials, etc...
 
         Args:
-            ip (string): MiCADO IP
             micado_user (string): User defined MiCADO user
-            micado_password ([type]): User defined MiCADO password
+            micado_password (string): User defined MiCADO password
+            terraform (boolean): Terraform enabled
+            occopus (boolean): Occopus enabled
         """
-        logger.info('Create default Ansible MiCADO configuration...')
 
-        # MiCADO credentials (WebUI, Submitter)
-        copyfile(self.ansible_folder + 'credentials/sample-credentials-micado.yml',
-                 self.ansible_folder + 'credentials/credentials-micado.yml')
-        self._create_micado_credential(micado_user, micado_password)
+        security_dict = self._generate_credential_data(micado_user, micado_password)
 
-        # Cloud credentials
-        copyfile(self.home + 'credentials-cloud-api.yml',
-                 self.ansible_folder + 'credentials/credentials-cloud-api.yml')
+        extra_variables = {
+            "cloud_cred_path": str(micado_cli_dir / "credentials-cloud-api.yml"),
+            "docker_cred_path": str(micado_cli_dir / "credentials-docker-registry.yml"),
+            "enable_terraform": terraform,
+            "enable_occopus": occopus,
+            "security": security_dict,
+        }
 
-        # MiCADO hosts.yml
-        self._create_micado_hostfile(ip)
-
-        # Registry credentials
-        try:
-            copyfile(self.home + 'credentials-docker-registry.yml',
-                     self.ansible_folder + 'credentials/credentials-docker-registry.yml')
-        except FileNotFoundError:
-            pass
-        else:
-            logger.info('Applying private Docker registry credentials...')
-
-        self._set_cloud_orchestrator("enable_terraform", terraform)
-        self._set_cloud_orchestrator("enable_occopus", occopus)
-
-    def _set_cloud_orchestrator(self, key, enable):
-        with open(self.ansible_folder+'host_vars/micado.yml', 'r') as f:
-            yaml = YAML()
-            micado = yaml.load(f)
-            if micado.get(key, None) is not None:
-                micado[key] = enable
-        with open(self.ansible_folder+'host_vars/micado.yml', "w") as f:
-            yaml.dump(micado, f)
-
-    def _create_micado_hostfile(self, ip):
-        """Create Ansible hostfile.
-
-        Args:
-            ip (string): MiCADO IP
-        """
-        logger.info('Create and configure Ansible host file...')
-        with open(self.ansible_folder+'sample-hosts.yml', 'r') as f:
-            yaml = YAML()
-            host_dict = yaml.load(f)
-            host_dict["all"]["hosts"]["micado"]["ansible_ssh_private_key_file"] = self.home + \
-                'micado_cli_config_priv_key'
-            host_dict["all"]["hosts"]["micado"]["ansible_ssh_extra_args"] = '-o StrictHostKeyChecking=no'
-            host_dict["all"]["hosts"]["micado"]["ansible_host"] = ip
-        with open(self.ansible_folder+'hosts.yml', "w") as f:
-            yaml.dump(host_dict, f)
+        return extra_variables
 
     def _create_micado_credential(self, micado_user, micado_password):
         """Create MiCADO credential file.
@@ -204,13 +153,7 @@ class AnsibleInstaller:
             raise Exception('{} second passed, and still cannot reach {}.'.format(
                 attempts * sleep_time, port))
 
-    def _deploy_micado(self):
-        """Deploy MiCADO services via ansible
-        """
-        logger.info('Deploy MiCADO')
-        subprocess.run(["ansible-playbook", "micado.yml"],
-                       cwd=self.ansible_folder,
-                       check=True)
+        
 
     def _remove_know_host(self):
         """Remove known_host file
