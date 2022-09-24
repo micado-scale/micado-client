@@ -24,16 +24,21 @@ class Playbook:
         if not self.playbook_exists():
             self.download()
             self.extract()
+        
+        data_dir = self.playbook_path / PLAYBOOK_INTERNAL
 
+        # fix_hosts_permissions() because https://github.com/ansible/ansible-runner/issues/853
+        fix_hosts_permissions(data_dir)
         runner = ansible_runner.interface.run(
             ident=self.id,
             playbook=PLAYBOOK_NAME,
-            private_data_dir=str(self.playbook_path / PLAYBOOK_INTERNAL),
+            private_data_dir=str(data_dir),
             inventory=hosts,
             extravars=extravars,
             rotate_artifacts=ROTATION,
             quiet=QUIET,
         )
+        fix_hosts_permissions(data_dir)
         return runner
 
     def download(self):
@@ -72,3 +77,6 @@ class Playbook:
     def playbook_exists(self):
         """Check if playbook directory exists"""
         return os.path.isdir(self.playbook_path)
+
+def fix_hosts_permissions(path: Path):
+    os.chmod(path / "inventory/hosts.json", 0o600)
