@@ -60,6 +60,9 @@ class AnsibleInstaller:
         self._check_ssh_availability(instance_ip)
 
         logger.info("Generating playbook inputs...")
+        if micado_password is None:
+            alphabet = string.ascii_letters + string.digits
+            micado_password = "".join(secrets.choice(alphabet) for i in range(14))
         hosts = self._generate_inventory(instance_ip)
         extravars = self._generate_extravars(
             micado_user, micado_password, terraform, occopus
@@ -125,10 +128,7 @@ class AnsibleInstaller:
             micado_password ([type]): User defined MiCADO password
         """
         logger.info("Loading MiCADO credentials...")
-        if micado_password is None:
-            alphabet = string.ascii_letters + string.digits
-            micado_password = "".join(secrets.choice(alphabet) for i in range(14))
-
+        
         auth_dict = {
             "authentication": {"username": micado_user, "password": micado_password}
         }
