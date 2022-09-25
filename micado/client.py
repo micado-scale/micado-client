@@ -8,11 +8,10 @@ import os
 
 from .api.client import SubmitterClient
 
-from .launcher.occopus import OccopusLauncher
 from .launcher.openstack import OpenStackLauncher
 from .launcher.cloudbroker import CloudBrokerLauncher
 
-from .installer.ansible import Ansible
+from .installer.ansible import AnsibleInstaller
 
 from .models.application import Applications
 from .models.micado import Micado
@@ -20,13 +19,12 @@ from .models.micado import Micado
 from .exceptions import MicadoException
 
 LAUNCHERS = {
-    "occopus": OccopusLauncher,
     "openstack": OpenStackLauncher,
     "cloudbroker": CloudBrokerLauncher,
 }
 
 INSTALLER = {
-    "ansible": Ansible,
+    "ansible": AnsibleInstaller,
 }
 
 
