@@ -9,7 +9,7 @@ import requests
 PLAYBOOK_NAME = "micado.yml"
 PLAYBOOK_INTERNAL = "playbook"
 ROTATION = 100  # max number of artifacts (logs, etc...) to keep
-QUIET = False  # hide ansible output
+QUIET = True  # hide ansible output
 
 
 class Playbook:

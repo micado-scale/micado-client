@@ -74,8 +74,9 @@ class AnsibleInstaller:
         if runner.rc == 0:
             logger.info("Playbook complete.")
         else:
-            logger.error(runner.status, runner.stderr)
-            raise MicadoException(runner.status, runner.stderr)
+            msg = "\n".join([event["stdout"] for event in list(runner.events)[-5:]])
+            logger.error(msg)
+            raise MicadoException(msg)
 
         self._check_port_availability(instance_ip, 443)
         logger.info("MiCADO deployed!")
