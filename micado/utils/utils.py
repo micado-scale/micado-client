@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import os
-import subprocess
 from pathlib import Path
 
 from Crypto.PublicKey import ECC
@@ -21,8 +20,7 @@ fh = logging.handlers.RotatingFileHandler(
     backupCount=3,
 )
 ch.setLevel(logging.INFO)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s : %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s : %(message)s")
 ch.setFormatter(formatter)
 fh.setFormatter(formatter)
 logger.addHandler(ch)
@@ -58,7 +56,7 @@ class DataHandling:
                 content["micados"] = data
         else:
             logger.debug("Data file does not exist. Creating new file...")
-            content = {'micados': data}
+            content = {"micados": data}
         with open(path, "w") as f:
             yaml.dump(content, f)
 
@@ -79,14 +77,14 @@ class DataHandling:
         yaml = YAML()
         content = None
         try:
-            with open(path, mode='r') as f:
+            with open(path, mode="r") as f:
                 content = yaml.load(f)
         except Exception as e:
             raise e
         search = [i for i in content["micados"] if i.get(server_id, None)]
         if not search:
             logger.error("Can't find {} record!".format(server_id))
-            raise Exception("Can't find property!")
+            raise LookupError("Can't find property!")
         else:
             return search[0][server_id]
 
@@ -130,7 +128,7 @@ class SSHKeyHandling:
         """
         if not SSHKeyHandling._check_ssh_key_existance(home):
             SSHKeyHandling._create_ssh_keys(home)
-        with open(home + 'micado_cli_config_pub_key', 'r') as f:
+        with open(home + "micado_cli_config_pub_key", "r") as f:
             pub_key = f.readline()
         return pub_key
 
@@ -141,17 +139,17 @@ class SSHKeyHandling:
         Returns:
             boolean: True if it is exist
         """
-        return os.path.isfile(home + 'micado_cli_config_priv_key') and os.path.isfile(home + 'micado_cli_config_pub_key')
+        return os.path.isfile(home + "micado_cli_config_priv_key") and os.path.isfile(
+            home + "micado_cli_config_pub_key"
+        )
 
     @staticmethod
     def _create_ssh_keys(home):
-        """Create SSH config key, and set the correct permission.
-
-        """
-        key = ECC.generate(curve='P-521')
-        with open(home + 'micado_cli_config_priv_key', 'wt') as f:
-            f.write(key.export_key(format='PEM'))
-        with open(home + 'micado_cli_config_pub_key', 'wt') as f:
-            f.write(key.public_key().export_key(format='OpenSSH'))
-        os.chmod(home + 'micado_cli_config_priv_key', 0o600)
-        os.chmod(home + 'micado_cli_config_pub_key',  0o666)
+        """Create SSH config key, and set the correct permission."""
+        key = ECC.generate(curve="P-521")
+        with open(home + "micado_cli_config_priv_key", "wt") as f:
+            f.write(key.export_key(format="PEM"))
+        with open(home + "micado_cli_config_pub_key", "wt") as f:
+            f.write(key.public_key().export_key(format="OpenSSH"))
+        os.chmod(home + "micado_cli_config_priv_key", 0o600)
+        os.chmod(home + "micado_cli_config_pub_key", 0o666)
