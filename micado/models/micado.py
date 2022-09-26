@@ -13,7 +13,7 @@ DEFAULT_PATH = Path.home() / ".micado-cli"
 
 
 class Micado(Model):
-    home = str(Path(os.environ.get("MICADO_CLI_DIR", DEFAULT_PATH))) + '/'
+    home = str(Path(os.environ.get("MICADO_CLI_DIR", DEFAULT_PATH))) + "/"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -33,6 +33,10 @@ class Micado(Model):
     @micado_ip.setter
     def micado_ip(self, micado_ip):
         self.client.micado_ip = micado_ip
+
+    @property
+    def details(self):
+        return self._get_details()
 
     @property
     def launcher(self):
@@ -56,14 +60,14 @@ class Micado(Model):
         Returns:
             SubmitterClient: return SubmitterClient
         """
-        server = DataHandling.get_properties(
-            f'{self.home}data.yml', self.micado_id)
+        server = DataHandling.get_properties(f"{self.home}data.yml", self.micado_id)
         self.micado_ip = server["ip"]
-        return SubmitterClient(endpoint=server["endpoint"],
-                               version=server["api_version"],
-                               verify=server["cert_path"],
-                               auth=(server["micado_user"],
-                                     server["micado_password"]))
+        return SubmitterClient(
+            endpoint=server["endpoint"],
+            version=server["api_version"],
+            verify=server["cert_path"],
+            auth=(server["micado_user"], server["micado_password"]),
+        )
 
     def attach(self, micado_id):
         """Configure the micado object to handle the instance
@@ -122,7 +126,7 @@ class Micado(Model):
             self.installer.deploy(_micado, **kwargs)
             self.api = self.init_api()
         except Exception as e:
-            if hasattr(locals()['self'], 'micado_id'):
+            if hasattr(locals()["self"], "micado_id"):
                 self.launcher.delete(self.micado_id)
             raise
         return self.micado_id
@@ -139,3 +143,21 @@ class Micado(Model):
         self.api._destroy()
         self.api = None
         self.launcher.delete(self.micado_id)
+
+    def _get_details(self):
+        try:
+            server = DataHandling.get_properties(f"{self.home}data.yml", self.micado_id)
+        except LookupError:
+            return "MiCADO instance provisioning..."
+        try:
+            ip = server["ip"]
+            user = server["micado_user"]
+            passwd = server["micado_password"]
+        except KeyError:
+            return "MiCADO installing..."
+
+        return f"""
+        WebUI: https://{ip}
+        Username: {user}
+        Password: {passwd}
+        """

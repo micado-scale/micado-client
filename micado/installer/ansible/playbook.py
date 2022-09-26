@@ -82,4 +82,7 @@ class Playbook:
         return os.path.isdir(self.playbook_path)
 
 def fix_hosts_permissions(path: Path):
-    os.chmod(path / "inventory/hosts.json", 0o600)
+    try:
+        os.chmod(path / "inventory/hosts.json", 0o600)
+    except FileNotFoundError:
+        pass
