@@ -95,6 +95,7 @@ class AnsibleInstaller:
             "ansible_ssh_private_key_file"
         ] = f"{self.home}micado_cli_config_priv_key"
         host_dict["ansible_host"] = ip
+        host_dict["ansible_user"] = "ubuntu"
         hosts = {"all": {"hosts": {"micado": host_dict}}}
 
         return hosts
