@@ -36,7 +36,11 @@ class Micado(Model):
 
     @property
     def details(self):
-        return self._get_details()
+        return self.client.details
+    
+    @details.setter
+    def details(self, details):        
+        self.client.details = details
 
     @property
     def launcher(self):
@@ -62,6 +66,13 @@ class Micado(Model):
         """
         server = DataHandling.get_properties(f"{self.home}data.yml", self.micado_id)
         self.micado_ip = server["ip"]
+        
+        self.details = f"""
+        WebUI: https://{server["ip"]}
+        Username: {server["micado_user"}
+        Password: {server["micado_password"]}
+        """
+        
         return SubmitterClient(
             endpoint=server["endpoint"],
             version=server["api_version"],
@@ -143,21 +154,3 @@ class Micado(Model):
         self.api._destroy()
         self.api = None
         self.launcher.delete(self.micado_id)
-
-    def _get_details(self):
-        try:
-            server = DataHandling.get_properties(f"{self.home}data.yml", self.micado_id)
-        except LookupError:
-            return "MiCADO instance provisioning..."
-        try:
-            ip = server["ip"]
-            user = server["micado_user"]
-            passwd = server["micado_password"]
-        except KeyError:
-            return "MiCADO installing..."
-
-        return f"""
-        WebUI: https://{ip}
-        Username: {user}
-        Password: {passwd}
-        """
