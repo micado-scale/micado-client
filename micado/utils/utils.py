@@ -3,7 +3,7 @@ import logging.config
 import os
 from pathlib import Path
 
-from Crypto.PublicKey import ECC
+from Crypto.PublicKey import RSA
 from ruamel.yaml import YAML
 
 DEFAULT_PATH = Path.home() / ".micado-cli"
@@ -146,10 +146,10 @@ class SSHKeyHandling:
     @staticmethod
     def _create_ssh_keys(home):
         """Create SSH config key, and set the correct permission."""
-        key = ECC.generate(curve="P-521")
-        with open(home + "micado_cli_config_priv_key", "wt") as f:
+        key = RSA.generate()
+        with open(home + "micado_cli_config_priv_key", "wb") as f:
             f.write(key.export_key(format="PEM"))
-        with open(home + "micado_cli_config_pub_key", "wt") as f:
+        with open(home + "micado_cli_config_pub_key", "wb") as f:
             f.write(key.public_key().export_key(format="OpenSSH"))
         os.chmod(home + "micado_cli_config_priv_key", 0o600)
         os.chmod(home + "micado_cli_config_pub_key", 0o666)
