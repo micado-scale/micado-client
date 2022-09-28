@@ -7,6 +7,7 @@ with open("README.md") as file:
 REQUIREMENTS = [
     "requests",
     "ruamel.yaml",
+    "paramiko",
     "pycryptodome",
     "python-novaclient",
     "openstacksdk",
