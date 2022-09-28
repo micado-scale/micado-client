@@ -1,5 +1,6 @@
 requests==2.28.1
 ruamel.yaml==0.17.21
+paramiko==2.11.0
 pycryptodome==3.15.0
 python-novaclient==18.1.0
 openstacksdk==0.101.0
