@@ -69,7 +69,7 @@ class Micado(Model):
         
         self.details = f"""
         WebUI: https://{server["ip"]}
-        Username: {server["micado_user"}
+        Username: {server["micado_user"]}
         Password: {server["micado_password"]}
         """
         
