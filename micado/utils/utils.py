@@ -1,6 +1,8 @@
 import logging
 import logging.config
 import os
+import string
+import secrets
 from pathlib import Path
 
 from Crypto.PublicKey import RSA
@@ -153,3 +155,8 @@ class SSHKeyHandling:
             f.write(key.public_key().export_key(format="OpenSSH"))
         os.chmod(home + "micado_cli_config_priv_key", 0o600)
         os.chmod(home + "micado_cli_config_pub_key", 0o666)
+
+def generate_password():
+    alphabet = string.ascii_letters + string.digits
+    password = "".join(secrets.choice(alphabet) for i in range(14))
+    return password

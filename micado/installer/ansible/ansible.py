@@ -2,16 +2,14 @@ import logging
 import logging.config
 import os
 import paramiko
-import secrets
 import socket
-import string
 import subprocess
 import time
 from pathlib import Path
 
 from micado.installer.ansible.playbook import Playbook
 from micado.exceptions import MicadoException
-from micado.utils.utils import DataHandling
+from micado.utils.utils import DataHandling, generate_password
 from ruamel.yaml import YAML
 
 DEFAULT_PATH = Path.home() / ".micado-cli"
@@ -55,21 +53,33 @@ class AnsibleInstaller:
         micado_id = micado.id
 
         logger.info("Check instance availability...")
-        self._check_port_availability(instance_ip, 22)
-        self._remove_know_host()
-        self._get_ssh_fingerprint(instance_ip)
-        self._check_ssh_availability(instance_ip)
+        self._check_availability(instance_ip)
 
         logger.info("Generating playbook inputs...")
-        if micado_password is None:
-            alphabet = string.ascii_letters + string.digits
-            micado_password = "".join(secrets.choice(alphabet) for i in range(14))
+        micado_password = micado_password or generate_password
         hosts = self._generate_inventory(instance_ip)
         extravars = self._generate_extravars(
             micado_user, micado_password, terraform, occopus
         )
 
         logger.info("Running playbook...")
+        self._run_playbook(micado_id, hosts, extravars)
+        self._check_port_availability(instance_ip, 443)
+        logger.info("MiCADO deployed!")
+
+        self._get_self_signed_cert(instance_ip, micado_id)
+        self._store_data(micado_id, self.api_version, micado_user, micado_password)
+        logger.info(f"MiCADO ID is: {micado_id}")
+
+    def _check_availability(self, instance_ip):
+        """Perform availability checks"""
+        self._check_port_availability(instance_ip, 22)
+        self._remove_know_host()
+        self._get_ssh_fingerprint(instance_ip)
+        self._check_ssh_availability(instance_ip)
+
+    def _run_playbook(self, micado_id, hosts, extravars):
+        """Run the playbook"""
         playbook = Playbook(self.micado_version, micado_id, self.home)
         runner = playbook.run(hosts, extravars)
         if runner.rc == 0:
@@ -78,12 +88,6 @@ class AnsibleInstaller:
             msg = "\n".join([event["stdout"] for event in list(runner.events)[-5:]])
             logger.error(msg)
             raise MicadoException(msg)
-
-        self._check_port_availability(instance_ip, 443)
-        logger.info("MiCADO deployed!")
-        self._get_self_signed_cert(instance_ip, micado_id)
-        self._store_data(micado_id, self.api_version, micado_user, micado_password)
-        logger.info(f"MiCADO ID is: {micado_id}")
 
     def _generate_inventory(self, ip):
         """Generate hosts info for Playbook
@@ -131,7 +135,7 @@ class AnsibleInstaller:
             micado_password ([type]): User defined MiCADO password
         """
         logger.info("Loading MiCADO credentials...")
-        
+
         auth_dict = {
             "authentication": {"username": micado_user, "password": micado_password}
         }
@@ -230,10 +234,12 @@ class AnsibleInstaller:
         """
         logger.info("Get MiCADO self_signed cert")
 
-        key = paramiko.RSAKey.from_private_key_file(f"{self.home}micado_cli_config_priv_key")
+        key = paramiko.RSAKey.from_private_key_file(
+            f"{self.home}micado_cli_config_priv_key"
+        )
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname = ip, username = "ubuntu", pkey = key)
+        ssh.connect(hostname=ip, username="ubuntu", pkey=key)
         sftp = ssh.open_sftp()
         sftp.get("/var/lib/micado/zorp/config/ssl.pem", f"{self.home}{id}-ssl.pem")
         sftp.close()
