@@ -19,7 +19,7 @@ class Playbook:
         self.tar_download: Path = Path(f"{home_dir}micado-{version}.tar.gz")
         self.playbook_path: Path = Path(f"{home_dir}micado-{version}")
 
-    def run(self, hosts: dict, extravars: dict):
+    def run(self, hosts: dict, extravars: dict, playbook: str = None):
         """Run the playbook"""
         if not self.playbook_exists():
             self.download()
@@ -31,7 +31,7 @@ class Playbook:
         fix_hosts_permissions(data_dir)
         runner = ansible_runner.interface.run(
             ident=self.id,
-            playbook=PLAYBOOK_NAME,
+            playbook=playbook or PLAYBOOK_NAME,
             private_data_dir=str(data_dir),
             inventory=hosts,
             extravars=extravars,
