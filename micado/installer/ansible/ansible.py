@@ -71,6 +71,9 @@ class AnsibleInstaller:
         self._store_data(micado_id, self.api_version, micado_user, micado_password)
         logger.info(f"MiCADO ID is: {micado_id}")
 
+    def connect_edges(self, micado_id, inventory):
+        self._run_playbook(micado_id, inventory, {}, playbook_file="edge.yml")
+
     def _check_availability(self, instance_ip):
         """Perform availability checks"""
         self._check_port_availability(instance_ip, 22)
@@ -78,10 +81,10 @@ class AnsibleInstaller:
         self._get_ssh_fingerprint(instance_ip)
         self._check_ssh_availability(instance_ip)
 
-    def _run_playbook(self, micado_id, hosts, extravars):
+    def _run_playbook(self, micado_id, hosts, extravars, playbook_file=None):
         """Run the playbook"""
         playbook = Playbook(self.micado_version, micado_id, self.home)
-        runner = playbook.run(hosts, extravars)
+        runner = playbook.run(hosts, extravars, playbook_file)
         if runner.rc == 0:
             logger.info("Playbook complete.")
         else:

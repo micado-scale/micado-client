@@ -142,6 +142,19 @@ class Micado(Model):
             raise
         return self.micado_id
 
+    def connect_edges(self, inventory):
+        """Connects a created MiCADO to specified edge nodes
+
+        Args:
+            inventory (dict): Ansible inventory file with MiCADO and edges.
+        """
+        if not self.api:
+            raise ConnectionError("MiCADO not deployed...")
+        try:
+            self.installer.connect_edges(self.micado_id, inventory)
+        except Exception as e:
+            raise ConnectionError("Cannot connect to edges...") from e
+
     def destroy(self):
         """Destroy running applications and the existing MiCADO VM.
 
