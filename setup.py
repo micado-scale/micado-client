@@ -18,7 +18,7 @@ REQUIREMENTS = [
 
 setup(
     name="micado-client",
-    version="0.11.0-dev",
+    version="0.11.1",
     description="A Python Client Library for MiCADO",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -26,6 +26,9 @@ setup(
     python_requires=">=3.8",
     url="https://github.com/micado-scale/micado-client",
     packages=find_packages(exclude=["tests"]),
+    project_urls={
+        "Bug Tracker": "https://github.com/micado-scale/micado-client/issues",
+    },
     install_requires=REQUIREMENTS,
     license="Apache 2.0",
     classifiers=[
