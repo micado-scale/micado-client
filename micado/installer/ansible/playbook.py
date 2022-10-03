@@ -50,6 +50,7 @@ class Playbook:
             f.write(r.content)
 
         if not tarfile.is_tarfile(self.tar_download):
+            os.remove(self.tar_download)
             raise TypeError(f"Download failed - check MiCADO {self.version} exists.")
 
     def extract(self):
