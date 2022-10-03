@@ -148,7 +148,7 @@ class SSHKeyHandling:
     @staticmethod
     def _create_ssh_keys(home):
         """Create SSH config key, and set the correct permission."""
-        key = RSA.generate()
+        key = RSA.generate(2048)
         with open(home + "micado_cli_config_priv_key", "wb") as f:
             f.write(key.export_key(format="PEM"))
         with open(home + "micado_cli_config_pub_key", "wb") as f:
