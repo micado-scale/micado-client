@@ -13,6 +13,7 @@ REQUIREMENTS = [
     "openstacksdk",
     "ansible",
     "ansible-runner",
+    "click",
     "dicttoxml",
 ]
 
@@ -38,4 +39,7 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
+    entry_points={
+        "console_scripts": ["micado=micado.cli:cli"],
+    },
 )
