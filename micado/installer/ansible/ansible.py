@@ -56,7 +56,7 @@ class AnsibleInstaller:
         self._check_availability(instance_ip)
 
         logger.info("Generating playbook inputs...")
-        micado_password = micado_password or generate_password
+        micado_password = micado_password or generate_password()
         hosts = self._generate_inventory(instance_ip)
         extravars = self._generate_extravars(
             micado_user, micado_password, terraform, occopus
