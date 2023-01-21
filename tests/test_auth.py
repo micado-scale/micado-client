@@ -63,7 +63,7 @@ def test_oidc_calls_openid_refresh_with_dict(monkeypatch):
 def requests_patch(monkeypatch, request):
     def patched_post(*args, **kwargs):
         mocked_response = Mock()
-        mocked_response.json = lambda: {request.param: (args)}
+        mocked_response.json = lambda: {request.param: kwargs}
         return mocked_response
 
     monkeypatch.setattr(requests, "post", patched_post)
@@ -86,6 +86,6 @@ def test_openid_token_refresh_request_body(requests_patch):
         client_secret=client_secret,
         refresh_token=token,
     )
-    assert response[0]["url"] == url
-    assert response[0]["auth"] == (client_id, client_secret)
-    assert response[0]["data"] == data
+    assert response["url"] == url
+    assert response["auth"] == (client_id, client_secret)
+    assert response["data"] == data

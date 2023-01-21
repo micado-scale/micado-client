@@ -93,7 +93,7 @@ def refresh_openid_token(
         post_req["auth"] = (client_id, client_secret)
 
     try:
-        response = requests.post(post_req).json()
+        response = requests.post(**post_req).json()
         return response["access_token"]
     except KeyError:
         raise exceptions.MicadoException("OpenID failed: {response}")
