@@ -73,25 +73,27 @@ class AppCredAuthenticator(Authenticator):
 def refresh_openid_token(
     *,
     url,
-    client_id,
-    client_secret,
     refresh_token,
+    client_id="token-portal",
+    client_secret=None,
     grant_type="refresh_token",
     scope="openid email profile",
 ):
-    """ Returns a new OpenID access token """
+    """Returns a new OpenID access token"""
     body = {
         "client_id": client_id,
-        "client_secret": client_secret,
         "grant_type": grant_type,
         "refresh_token": refresh_token,
         "scope": scope,
     }
+    post_req = {"url": url, "data": body}
+
+    if client_secret:
+        body["client_secret"] = client_secret
+        post_req["auth"] = (client_id, client_secret)
 
     try:
-        response = requests.post(
-            url, data=body, auth=(client_id, client_secret)
-        ).json()
+        response = requests.post(post_req).json()
         return response["access_token"]
     except KeyError:
         raise exceptions.MicadoException("OpenID failed: {response}")
