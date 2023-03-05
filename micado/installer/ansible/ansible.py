@@ -67,7 +67,7 @@ class AnsibleInstaller:
         self._check_port_availability(instance_ip, 443)
         logger.info("MiCADO deployed!")
 
-        self._get_self_signed_cert(instance_ip, micado_id)
+        #self._get_self_signed_cert(instance_ip, micado_id)
         self._store_data(micado_id, self.api_version, micado_user, micado_password)
         logger.info(f"MiCADO ID is: {micado_id}")
 
@@ -254,14 +254,14 @@ class AnsibleInstaller:
             micado_user (string): MiCADO username
             micado_password (string): MiCADO password
         """
-        cert_path = f"{self.home}{server_id}-ssl.pem"
+        #cert_path = f"{self.home}{server_id}-ssl.pem"
         DataHandling.update_data(
             self.home + "data.yml",
             server_id,
             api_version=api_version,
             micado_user=micado_user,
             micado_password=micado_password,
-            cert_path=cert_path,
+            #cert_path=cert_path,
         )
 
     def get_api_version(self):
