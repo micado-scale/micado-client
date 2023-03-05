@@ -76,7 +76,7 @@ class Micado(Model):
         return SubmitterClient(
             endpoint=server["endpoint"],
             version=server["api_version"],
-            verify=server["cert_path"],
+            verify=False,
             auth=(server["micado_user"], server["micado_password"]),
         )
 
