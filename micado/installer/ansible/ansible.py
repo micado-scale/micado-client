@@ -119,7 +119,7 @@ class AnsibleInstaller:
 
         extra_variables = {
             "cloud_cred_path": str(micado_cli_dir / "credentials-cloud-api.yml"),
-            "docker_cred_path": str(micado_cli_dir / "credentials-docker-registry.yml"),
+            "docker_cred_path": str(micado_cli_dir / "credentials-registries.yml"),
             "enable_terraform": terraform,
             "enable_occopus": occopus,
             "security": security_dict,
