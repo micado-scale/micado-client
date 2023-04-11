@@ -146,9 +146,8 @@ def deploy(vault):
         sys.exit(1)
     if not os.path.exists(CONFIGS["cloud"][1]):
         click.secho(
-            f"Target clouds not configured! Use `micado config cloud`", fg="red"
+            f"Deploying with no clouds configured. Use `micado config cloud`", fg="yellow"
         )
-        sys.exit(1)
 
     password = (
         click.prompt("Enter the vault password", type=str, hide_input=True)
