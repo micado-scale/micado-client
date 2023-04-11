@@ -10,7 +10,7 @@ import ansible_runner
 
 from micado.installer.ansible.playbook import Playbook
 
-DEFAULT_VERS = "v0.11.2"
+DEFAULT_VERS = "v0.12.0"
 
 CONFIGS: dict = {
     "hosts": ("playbook/inventory", "hosts.yml"),
