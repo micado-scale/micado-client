@@ -10,13 +10,13 @@ import ansible_runner
 
 from micado.installer.ansible.playbook import Playbook
 
-DEFAULT_VERS = "v0.11.2"
+DEFAULT_VERS = "v0.12.0"
 
 CONFIGS: dict = {
     "hosts": ("playbook/inventory", "hosts.yml"),
     "cloud": ("playbook/project/credentials", "credentials-cloud-api.yml"),
-    "registry": ("playbook/project/credentials", "credentials-docker-registry.yml"),
-    "micado": ("playbook/project/credentials", "credentials-micado.yml"),
+    "registry": ("playbook/project/credentials", "credentials-registries.yml"),
+    "web": ("playbook/project/credentials", "credentials-micado.yml"),
     "settings": ("playbook/project/host_vars", "micado.yml"),
 }
 
@@ -146,9 +146,8 @@ def deploy(vault):
         sys.exit(1)
     if not os.path.exists(CONFIGS["cloud"][1]):
         click.secho(
-            f"Target clouds not configured! Use `micado config cloud`", fg="red"
+            f"Deploying with no clouds configured. Use `micado config cloud`", fg="yellow"
         )
-        sys.exit(1)
 
     password = (
         click.prompt("Enter the vault password", type=str, hide_input=True)
