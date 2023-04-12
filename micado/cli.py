@@ -139,7 +139,12 @@ def settings():
     is_flag=True,
     help="Asks for the vault password. (Required if using vault)",
 )
-def deploy(vault):
+@click.option(
+    "--update-auth",
+    is_flag=True,
+    help="Updates cloud and registry credentials of an existing cluster.",
+)
+def deploy(vault, update_auth):
     """Deploys a MiCADO cluster as per the configuration"""
     if not os.path.exists(CONFIGS["hosts"][1]):
         click.secho(f"MiCADO host not configured! Use `micado config hosts`", fg="red")
@@ -155,7 +160,8 @@ def deploy(vault):
         if vault
         else ""
     )
-    cmdline = "--ask-vault-pass" if vault else " "
+    cmdline = "--ask-vault-pass " if vault else " "
+    cmdline += "--tags update-auth" if update_auth else ""
     passwords = {"^Vault password:\\s*?$": password} if vault else {}
 
     ansible_runner.run(
