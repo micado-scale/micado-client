@@ -2,10 +2,13 @@ import logging
 import logging.config
 import os
 import paramiko
+import requests
 import socket
 import subprocess
 import time
+import urllib3
 from pathlib import Path
+from requests.adapters import Retry, HTTPAdapter
 
 from micado.installer.ansible.playbook import Playbook
 from micado.exceptions import MicadoException
@@ -34,6 +37,7 @@ fh.setFormatter(formatter)
 logger.addHandler(ch)
 logger.addHandler(fh)
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class AnsibleInstaller:
     micado_version = os.environ.get("MICADO_VERS", DEFAULT_VERS)
@@ -64,12 +68,23 @@ class AnsibleInstaller:
 
         logger.info("Running playbook...")
         self._run_playbook(micado_id, hosts, extravars)
-        self._check_port_availability(instance_ip, 443)
+        self._check_submitter(instance_ip, micado_user, micado_password)
         logger.info("MiCADO deployed!")
 
         self._get_self_signed_cert(instance_ip, micado_id)
         self._store_data(micado_id, self.api_version, micado_user, micado_password)
         logger.info(f"MiCADO ID is: {micado_id}")
+        
+    def _check_submitter(self, instance_ip, user, passw):
+        """Check the submitter endpoint is returning 200"""
+        self._check_port_availability(instance_ip, 443)
+        s = requests.Session()
+        s.auth = (user, passw)
+        s.verify = False
+        
+        retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+        s.mount("https://", HTTPAdapter(max_retries=retries))
+        s.get(f"https://{instance_ip}/toscasubmitter/v2.0/applications/")
 
     def _check_availability(self, instance_ip):
         """Perform availability checks"""
