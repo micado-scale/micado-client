@@ -147,7 +147,7 @@ class CloudBrokerLauncher:
             auth_url = None
             content = None
             with open(self.home + 'data.yml', mode='r') as f:
-                content = yaml.load(f)
+                content = yaml.safe_load(f)
             search = [i for i in content["micados"] if i.get(id, None)]
             if not search:
                 logger.debug(
