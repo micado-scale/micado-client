@@ -2,7 +2,7 @@ import ast
 
 
 class ApplicationInfo(dict):
-    def __init__(self, adt=None, url=None, params={}, dryrun=False):
+    def __init__(self, adt=None, url=None, params=None, dryrun=False):
         """Creates required JSON parameters for create_app
 
         Args:
