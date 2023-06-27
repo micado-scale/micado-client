@@ -3,6 +3,8 @@
 Low-level methods for managing applications in MiCADO
 
 """
+import json
+
 from micado.types import ApplicationInfo
 from micado.exceptions import detailed_raise_for_status
 
@@ -66,8 +68,13 @@ class ApplicationMixin:
 
         json_data = ApplicationInfo(adt, url, params, dryrun)
         if file:
+            form_data = {
+                k: json.dumps(v) if isinstance(v, dict) 
+                else str(v) 
+                for k, v in json_data.items()
+            }
             file_data = {"adt": file}
-            resp = self.post(url, files=file_data, json=json_data)
+            resp = self.post(url, files=file_data, data=form_data)
         else:
             resp = self.post(url, json=json_data)
         detailed_raise_for_status(resp)
