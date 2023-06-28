@@ -62,9 +62,9 @@ class ApplicationMixin:
         if not adt and not url and not file:
             raise TypeError("Either adt or url or file is required.")
         if app_id:
-            url = self._url(f"/applications/{app_id}/")
+            endpoint = self._url(f"/applications/{app_id}/")
         else:
-            url = self._url("/applications/")
+            endpoint = self._url("/applications/")
 
         json_data = ApplicationInfo(adt, url, params, dryrun)
         if file:
@@ -74,9 +74,9 @@ class ApplicationMixin:
                 for k, v in json_data.items()
             }
             file_data = {"adt": file}
-            resp = self.post(url, files=file_data, data=form_data)
+            resp = self.post(endpoint, files=file_data, data=form_data)
         else:
-            resp = self.post(url, json=json_data)
+            resp = self.post(endpoint, json=json_data)
         detailed_raise_for_status(resp)
         return resp.json()
 
