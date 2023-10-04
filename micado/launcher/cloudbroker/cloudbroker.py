@@ -54,11 +54,19 @@ class CloudBrokerLauncher:
     """
     home = str(Path(os.environ.get("MICADO_CLI_DIR", DEFAULT_PATH))) + '/'
 
-    def launch(self, auth_url, deployment_id=None, instance_type_id=None, key_pair_id=None, firewall_rule_set_id=None, **kwargs):
+    def launch(self, 
+               auth_url, 
+               name=None, 
+               deployment_id=None, 
+               instance_type_id=None, 
+               key_pair_id=None, 
+               firewall_rule_set_id=None, 
+               **kwargs):
         """
         Create the MiCADO node
 
         Args:
+            name (string): Optional name for the MiCADO instance
             auth_url ([type]): [description]
             deployment_id ([type]): [description]
             instance_type_id ([type]): [description]
@@ -88,8 +96,9 @@ class CloudBrokerLauncher:
             descr['firewall_rule_set_id'] = firewall_rule_set_id
             descr.setdefault('disable_autostop', 'true')
             descr.setdefault('isolated', 'true')
-            name_id = uuid.uuid1()
-            name = 'MiCADO-{}'.format(name_id.hex)
+            if not name:
+                name_id = uuid.uuid1()
+                name = 'MiCADO-{}'.format(name_id.hex)
             descr['name'] = name
 
             logger.info('Creating CloudBroker VM...')
