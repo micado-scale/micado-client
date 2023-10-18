@@ -212,12 +212,16 @@ def reset_directory(target):
 
 
 def open_config_file(choice):
-    file: tuple[str, str] = CONFIGS[choice]
+    file = CONFIGS[choice]
+    handle_file_opening(file)
+    if file[0].endswith("credentials"):
+        produce_credential_warning(file)
+def handle_file_opening(file):
     remove_sample_from_filename(file)
     try:
         symlink = get_symlink_config_file(file)
     except FileNotFoundError:
-        click.secho("Could not find the config file.", fg="red")
+        click.secho("Could not find the file.", fg="red")
         click.secho("  Reset all files with `micado init . --force`")
         sys.exit(1)
 
@@ -225,8 +229,6 @@ def open_config_file(choice):
         click.edit(filename=symlink)
     except click.UsageError:
         click.secho("Could not open default text editor.", fg="red")
-        click.secho("  You can manually edit the file at {symlink}.")
+        click.secho(f"  You can manually edit the file at {symlink}.")
 
-    click.secho(f"Symlink created at: {symlink}\n", fg="green")
-    if file[0].endswith("credentials"):
-        produce_credential_warning(file)
+    click.secho(f"File available at: {Path(symlink).name}\n", fg="green")
