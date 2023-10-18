@@ -8,18 +8,10 @@ from typing import Collection
 import click
 import ansible_runner
 
+from micado.settings import CONFIGS
 from micado.installer.ansible.playbook import Playbook
 
 DEFAULT_VERS = "v0.12.0"
-
-CONFIGS: dict = {
-    "hosts": ("playbook/inventory", "hosts.yml"),
-    "cloud": ("playbook/project/credentials", "credentials-cloud-api.yml"),
-    "registry": ("playbook/project/credentials", "credentials-registries.yml"),
-    "web": ("playbook/project/credentials", "credentials-micado.yml"),
-    "settings": ("playbook/project/host_vars", "micado.yml"),
-}
-
 
 class OrderedGroup(click.Group):
     def list_commands(self, ctx) -> Collection:
