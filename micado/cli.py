@@ -11,7 +11,7 @@ import ansible_runner
 from micado.settings import CONFIGS
 from micado.installer.ansible.playbook import Playbook
 
-DEFAULT_VERS = "v0.12.0"
+DEFAULT_VERS = "v0.12.2"
 
 class OrderedGroup(click.Group):
     def list_commands(self, ctx) -> Collection:
@@ -51,7 +51,7 @@ def cli(ctx):
     required=False,
     default=DEFAULT_VERS,
     type=str,
-    help="MiCADO semantic version, prefixed by v (e.g. v0.11.2)",
+    help="MiCADO semantic version, prefixed by v (e.g. v0.12.2)",
 )
 @click.option(
     "--force",
