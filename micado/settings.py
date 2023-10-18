@@ -6,3 +6,4 @@ CONFIGS: dict = {
     "settings": ("playbook/project/host_vars", "micado", ".yml"),
 }
 
+warned_vault = ".user_warned_vault"

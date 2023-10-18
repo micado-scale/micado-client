@@ -8,7 +8,7 @@ from typing import Collection
 import click
 import ansible_runner
 
-from micado.settings import CONFIGS
+from micado.settings import CONFIGS, warned_vault
 from micado.installer.ansible.playbook import Playbook
 
 DEFAULT_VERS = "v0.12.2"
@@ -192,6 +192,10 @@ def get_symlink_config_file(file) -> str:
 
 
 def produce_credential_warning(file):
+    warning_file = Path(".micado").absolute() / warned_vault
+    if warning_file.exists():
+        return
+    
     click.secho(
         "Please consider encrypting credential files with ansible-vault.", bold=True
     )
@@ -202,6 +206,8 @@ def produce_credential_warning(file):
     click.secho(f"    ansible-vault encrypt {file[1]}\n", italic=True)
     click.echo("If you need to edit the file again, first decrypt it with:")
     click.secho(f"    ansible-vault decrypt {file[1]}", italic=True)
+
+    warning_file.touch()
 
 
 def reset_directory(target):
