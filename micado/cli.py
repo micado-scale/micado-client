@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 import ansible_runner
 
-from micado.settings import CONFIGS, warned_vault
+from micado.settings import CONFIGS, DEMOS, CLOUDS, warned_vault
 from micado.installer.ansible.playbook import Playbook
 
 DEFAULT_VERS = "v0.12.2"
@@ -88,7 +88,30 @@ def init(target, version, force):
         f"Succesfully initialised the MiCADO setup in {target_text}", fg="green"
     )
 
+@cli.command()
+@click.argument(
+    "demo",
+    required=True,
+    type=click.Choice(DEMOS.keys(), case_sensitive=False),
+)
+@click.argument(
+    "cloud",
+    required=True,
+    type=click.Choice(CLOUDS, case_sensitive=False),
+)
+def demo(demo, cloud):
+    """Edit the Application Description Template for DEMO on CLOUD
 
+    Provide instance configuration to host the demo and run with
+    `micado start FILE`    
+    """
+    if demo == "cqueue" and cloud not in ["ec2", "cloudsigma"]:
+        click.secho("Sorry, `cqueue` only supports ec2 and cloudsigma.")
+        sys.exit(1)
+    open_demo_file(demo, cloud)
+    click.secho(
+        f"If you are done configuring the ADT, run it with `micado start FILE`", fg="green"
+    )
 
 
 @cli.command()
