@@ -26,7 +26,7 @@ def cli(ctx):
     A typical workflow consists of:
       `micado init`    To gather setup files
       `micado config`  To configure the deployment
-      `micado deploy`  To install MiCADO
+      `micado up`  To deploy MiCADO
     """
     if ctx.invoked_subcommand == "init":
         pass
@@ -135,7 +135,7 @@ def settings():
     is_flag=True,
     help="Updates cloud and registry credentials of an existing cluster.",
 )
-def deploy(vault, update_auth):
+def up(vault, update_auth):
     """Deploys a MiCADO cluster as per the configuration"""
     if not os.path.exists(CONFIGS["hosts"][1]):
         click.secho(f"MiCADO host not configured! Use `micado config hosts`", fg="red")
