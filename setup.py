@@ -24,7 +24,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Márk Emődi & Jay DesLauriers",
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     url="https://github.com/micado-scale/micado-client",
     packages=find_packages(exclude=["tests"]),
     project_urls={
@@ -36,7 +36,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
     entry_points={
