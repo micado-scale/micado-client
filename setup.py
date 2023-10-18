@@ -19,7 +19,7 @@ REQUIREMENTS = [
 
 setup(
     name="micado-client",
-    version="0.12.4",
+    version="0.12.5",
     description="A Python Client Library for MiCADO",
     long_description=long_description,
     long_description_content_type="text/markdown",
