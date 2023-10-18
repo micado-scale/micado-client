@@ -3,7 +3,6 @@ import os
 import shutil
 import contextlib
 from pathlib import Path
-from typing import Collection
 
 import click
 import ansible_runner
@@ -14,7 +13,7 @@ from micado.installer.ansible.playbook import Playbook
 DEFAULT_VERS = "v0.12.2"
 
 class OrderedGroup(click.Group):
-    def list_commands(self, ctx) -> Collection:
+    def list_commands(self, ctx) -> list[str]:
         return self.commands.keys()
 
 
