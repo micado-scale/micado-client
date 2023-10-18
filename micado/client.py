@@ -172,6 +172,29 @@ class MicadoClient:
             verify=False,
         )
 
+    @classmethod
+    def from_existing(
+        cls,
+        endpoint,
+        version="v2.0",
+        username="admin",
+        password="admin",
+        cert=False
+    ):
+        """Usage:
+            Use endpoint, API version, user/pass & verify
+
+            >>> from micado import MicadoClient
+            >>> client = MicadoClient.from_existing()
+        """
+
+        return cls(
+            endpoint=endpoint,
+            version=version,
+            auth=(username, password),
+            verify=cert,
+        )
+
     @property
     def applications(self):
         return Applications(client=self)
