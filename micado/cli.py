@@ -6,9 +6,14 @@ from pathlib import Path
 
 import click
 import ansible_runner
+from requests.exceptions import ConnectionError
+from ruamel.yaml import YAML
 
 from micado.settings import CONFIGS, DEMOS, CLOUDS, warned_vault
 from micado.installer.ansible.playbook import Playbook
+from micado import MicadoClient, exceptions
+
+yaml = YAML()
 
 DEFAULT_VERS = "v0.12.2"
 
@@ -36,6 +41,64 @@ def cli(ctx):
         click.secho(
             "Please initalise a new directory with `micado init`. ", fg="yellow"
         )
+        sys.exit(1)
+
+@cli.command()
+@click.argument(
+    "ADT",
+    required=True,
+    type=click.Path(file_okay=True, writable=False, readable=True, resolve_path=True),
+)
+def start(adt):
+    """Start a MiCADO app.
+
+    Expects a YAML or CSAR ADT
+    """
+    client = get_client()
+    click.secho(f"Starting MiCADO app...")
+    try:
+        with open(adt, "rb") as file_data:
+            client.applications.create(app_id="MICADO-APP", file=file_data)
+    except ConnectionError:
+        click.secho(f"Cannot connect due to network issue.", fg="red")
+        sys.exit(1)
+    except exceptions.MicadoException as err:
+        click.secho(f"Issue starting MiCADO app.\n{err}", fg="red")
+        sys.exit(1)
+    click.secho(f"MiCADO app succesfully launched.", fg="green")
+
+@cli.command()
+def stop():
+    """Removes the MiCADO app.
+    """
+    client = get_client()
+    click.secho(f"Removing MiCADO app...")
+    try:
+        client.applications.delete(app_id="MICADO-APP")
+    except ConnectionError:
+        click.secho(f"Cannot connect due to network issue.", fg="red")
+        sys.exit(1)
+    except exceptions.MicadoException as err:
+        click.secho(f"Issue stopping MiCADO app.\n{err}", fg="red")
+        sys.exit(1)
+    click.secho(f"MiCADO app succesfully removed.", fg="green")
+
+@cli.command()
+def info():
+    """List running MiCADO app.
+    """
+    client = get_client()
+    try:
+        apps = client.applications.list()
+        if apps:
+            click.secho(f"Currently running: {', '.join([app.id for app in apps])}", fg="green")
+        else:
+            click.secho(f"No MiCADO app running.", fg="green")
+    except ConnectionError:
+        click.secho(f"Cannot connect due to network issue.", fg="red")
+        sys.exit(1)
+    except exceptions.MicadoException as err:
+        click.secho(f"Issue getting info from MiCADO.\n{err}", fg="red")
         sys.exit(1)
 
 
@@ -162,6 +225,16 @@ def up(vault, update_auth):
         private_data_dir="./.micado/playbook",
     )
 
+def get_client() -> MicadoClient:
+    endpoint, version = get_endpoint_and_api()
+    username, password = get_micado_creds()
+
+    return MicadoClient.from_existing(
+        endpoint,
+        version,
+        username,
+        password
+    )
 
 def directory_is_not_empty(dir) -> bool:
     try:
@@ -169,9 +242,13 @@ def directory_is_not_empty(dir) -> bool:
     except FileNotFoundError:
         return False
 
+def get_actual_config_file(file) -> Path:
+    *dirs, ext = file
+    home = Path(".micado").absolute()
+    return home.joinpath(*dirs).with_suffix(ext)
 
 def remove_sample_from_filename(file):
-    path = Path(".micado").absolute() / Path(file[0]) / Path(file[1])
+    path = get_actual_config_file(file)
     try:
         src = path.parent / f"sample-{path.name}"
         dst = path.parent / f"{path.name}"
@@ -181,7 +258,7 @@ def remove_sample_from_filename(file):
 
 
 def get_symlink_config_file(file) -> str:
-    path = Path(".micado").absolute() / Path(file[0]) / Path(file[1])
+    path = get_actual_config_file(file)
     try:
         Path(path.name).absolute().symlink_to(path)
     except FileNotFoundError:
@@ -190,6 +267,32 @@ def get_symlink_config_file(file) -> str:
         pass
     return str(Path(path.name).absolute())
 
+def get_endpoint_and_api() -> tuple[str, str]:
+    with open(get_actual_config_file(CONFIGS["hosts"])) as file:
+        hosts = yaml.load(file)
+    ip = hosts["all"]["hosts"]["micado"]["ansible_host"]
+
+    port = 443
+    try:
+        with open(get_actual_config_file(CONFIGS["settings"])) as file:
+            settings = yaml.load(file)
+        port = settings["web_listening_port"]
+    except FileNotFoundError:
+        pass
+
+    return f"https://{ip}:{port}/toscasubmitter/", "v2.0"
+
+def get_micado_creds() -> tuple[str, str]:
+    user, pwrd = "admin", "admin"
+    try:
+        with open(get_actual_config_file(CONFIGS["web"])) as file:
+            web = yaml.load(file)
+        user = web["authentication"]["username"]
+        pwrd = web["authentication"]["password"]
+    except FileNotFoundError:
+        pass
+
+    return user, pwrd
 
 def produce_credential_warning(file):
     warning_file = Path(".micado").absolute() / warned_vault
@@ -222,6 +325,18 @@ def open_config_file(choice):
     handle_file_opening(file)
     if file[0].endswith("credentials"):
         produce_credential_warning(file)
+
+
+def open_demo_file(choice, cloud):
+    if cloud not in CLOUDS:
+        click.secho(f"Unsupported cloud {cloud}.", fg="red")
+        click.secho(f"  Supported clouds are: {', '.join(CLOUDS)}", fg="yellow")
+        sys.exit(1)
+
+    dir, name, ext = DEMOS[choice]
+    file = dir, f"{name}_{cloud}", ext
+    handle_file_opening(file)
+
 def handle_file_opening(file):
     remove_sample_from_filename(file)
     try:
