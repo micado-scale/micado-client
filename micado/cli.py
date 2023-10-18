@@ -88,40 +88,17 @@ def init(target, version, force):
     )
 
 
-@cli.group()
-def config():
-    """Configure details of a MiCADO cluster before deployment."""
-    pass
 
 
-@config.command()
-def hosts():
-    """Specify connection details for the MiCADO host (REQUIRED)"""
-    open_config_file("hosts")
-
-
-@config.command()
-def cloud():
-    """Specify cloud API credentials (REQUIRED)"""
-    open_config_file("cloud")
-
-
-@config.command()
-def registry():
-    """Specify private Docker registry credentials"""
-    open_config_file("registry")
-
-
-@config.command()
-def micado():
-    """Configure MiCADO WebUI access settings"""
-    open_config_file("micado")
-
-
-@config.command()
-def settings():
-    """Configure common deployment settings"""
-    open_config_file("settings")
+@cli.command()
+@click.argument(
+    "config",
+    required=True,
+    type=click.Choice(CONFIGS.keys(), case_sensitive=False),
+)
+def config(option):
+    """Set CONFIG for a MiCADO cluster before deployment."""
+    open_config_file(option)
 
 
 @cli.command()
