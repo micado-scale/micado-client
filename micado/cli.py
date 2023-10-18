@@ -28,9 +28,10 @@ def cli(ctx):
       `micado config`  To configure the deployment
       `micado up`  To deploy MiCADO
     """
+    home = Path(".micado").absolute()
     if ctx.invoked_subcommand == "init":
         pass
-    elif not Path(".micado").absolute().is_dir():
+    elif not home.is_dir():
         click.secho("The current directory is not initialised. ", fg="yellow", nl=False)
         click.secho(
             "Please initalise a new directory with `micado init`. ", fg="yellow"
