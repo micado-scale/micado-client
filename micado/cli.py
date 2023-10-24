@@ -183,9 +183,9 @@ def demo(demo, cloud):
     required=True,
     type=click.Choice(CONFIGS.keys(), case_sensitive=False),
 )
-def config(option):
+def config(config):
     """Set CONFIG for a MiCADO cluster before deployment."""
-    open_config_file(option)
+    open_config_file(config)
 
 
 @cli.command()
