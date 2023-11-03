@@ -15,7 +15,7 @@ from micado import MicadoClient, exceptions
 
 yaml = YAML()
 
-DEFAULT_VERS = "v0.12.2"
+DEFAULT_VERS = "v0.12.3"
 
 class OrderedGroup(click.Group):
     def list_commands(self, ctx) -> list[str]:
