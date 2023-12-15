@@ -51,6 +51,7 @@ class AnsibleInstaller:
         micado_password=None,
         terraform=True,
         occopus=False,
+        wireguard=True,
         **kwargs,
     ):
         instance_ip = micado.ip
@@ -63,7 +64,7 @@ class AnsibleInstaller:
         micado_password = micado_password or generate_password()
         hosts = self._generate_inventory(instance_ip)
         extravars = self._generate_extravars(
-            micado_user, micado_password, terraform, occopus
+            micado_user, micado_password, terraform, occopus, wireguard
         )
 
         logger.info("Running playbook...")
@@ -137,6 +138,7 @@ class AnsibleInstaller:
             "registry_cred_path": str(micado_cli_dir / "credentials-registries.yml"),
             "enable_terraform": terraform,
             "enable_occopus": occopus,
+            "enable_wireguard": wireguard,
             "security": security_dict,
         }
 
