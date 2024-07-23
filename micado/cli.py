@@ -204,7 +204,7 @@ def up(vault, update_auth):
     if not os.path.exists("".join(CONFIGS["hosts"][1:])):
         click.secho(f"MiCADO host not configured! Use `micado config hosts`", fg="red")
         sys.exit(1)
-    if not os.path.exists("".join(CONFIGS["cloud"][1:])):
+    if not os.path.exists("".join(CONFIGS["cloud"][1:])) and not os.path.exists("".join(CONFIGS["gcp"][1:])):
         click.secho(
             f"Deploying with no clouds configured. Use `micado config cloud`", fg="yellow"
         )
