@@ -5,6 +5,7 @@ CONFIGS: dict = {
     "registry": ("playbook/project/credentials", "credentials-registries", ".yml"),
     "web": ("playbook/project/credentials", "credentials-micado", ".yml"),
     "settings": ("playbook/project/host_vars", "micado", ".yml"),
+    "advanced": ("playbook/project/group_vars", "all", ".yml"),
 }
 
 DEMOS: dict = {
