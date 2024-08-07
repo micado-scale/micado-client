@@ -15,7 +15,7 @@ from micado import MicadoClient, exceptions
 
 yaml = YAML()
 
-DEFAULT_VERS = "v0.12.5"
+DEFAULT_VERS = "v0.12.6"
 
 class OrderedGroup(click.Group):
     def list_commands(self, ctx) -> list[str]:
@@ -224,6 +224,22 @@ def up(vault, update_auth):
         passwords=passwords,
         private_data_dir="./.micado/playbook",
     )
+
+@cli.command()
+def edge():
+    """Generates edge script and registry for a running MiCADO"""
+    if not os.path.exists("".join(CONFIGS["hosts"][1:])):
+        click.secho(f"MiCADO must be deployed to generate edge script.", fg="red")
+        sys.exit(1)
+
+    cmdline = "--tags edge-files"
+
+    ansible_runner.run(
+        playbook="agent.yml",
+        cmdline=cmdline,
+        private_data_dir="./.micado/playbook",
+    )
+
 
 def get_client() -> MicadoClient:
     endpoint, version = get_endpoint_and_api()
