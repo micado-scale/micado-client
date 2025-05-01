@@ -65,6 +65,9 @@ def start(adt):
     except exceptions.MicadoException as err:
         click.secho(f"Issue starting MiCADO app.\n{err}", fg="red")
         sys.exit(1)
+    except Exception as err:
+        click.secho(f"Unhandled exception starting MiCADO app.\n{err}", fg="red")
+        sys.exit(1)
     click.secho(f"MiCADO app succesfully launched.", fg="green")
 
 @cli.command()
