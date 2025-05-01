@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>MiCADO Applications &#8212; micado-client 0.10.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
-    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
     <script src="_static/documentation_options.js?v=82662543"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -37,113 +37,8 @@
 <p>Methods available on <code class="docutils literal notranslate"><span class="pre">client.applications</span></code>:</p>
 <dl class="py class hide-signature">
 <dt class="sig sig-object py" id="micado.models.application.Applications">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">micado.models.application.</span></span><span class="sig-name descname"><span class="pre">Applications</span></span><a class="headerlink" href="#micado.models.application.Applications" title="Link to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt class="sig sig-object py" id="micado.models.application.Applications.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#micado.models.application.Applications.get" title="Link to this definition">¶</a></dt>
-<dd><p>Retrieves info on a specific application, given its ID</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>app_id</strong> (<em>string</em>) – Application ID to fetch. Required</p>
-</dd>
-</dl>
-<p>Usage:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_app</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">applications</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stresstest&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_app</span><span class="o">.</span><span class="n">id</span>
-<span class="go">&quot;stresstest&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_app</span><span class="o">.</span><span class="n">adaptors</span>
-<span class="go">{&#39;KubernetesAdaptor&#39;: &#39;Executed&#39;, &#39;OccopusAdaptor&#39;: &#39;Skipped&#39;}</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Relevant information for a single application</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Application object</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="micado.models.application.Applications.list">
-<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#micado.models.application.Applications.list" title="Link to this definition">¶</a></dt>
-<dd><p>Retrieves the available list of applications in MiCADO</p>
-<p>Usage:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">running_apps</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">applications</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">app</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">running_apps</span><span class="p">]</span>
-<span class="go">[&quot;stresstest&quot;]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Relevant info for all applications</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list of Application objects</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="micado.models.application.Applications.create">
-<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#micado.models.application.Applications.create" title="Link to this definition">¶</a></dt>
-<dd><p>Creates a new application in MiCADO</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>app_id</strong> (<em>string</em><em>, </em><em>optional</em>) – Application ID. Generated if None.</p></li>
-<li><p><strong>adt</strong> (<em>dict</em><em>, </em><em>optional</em>) – YAML dict of Application Description
-Template. Required if URL is empty. Defaults to None.</p></li>
-<li><p><strong>url</strong> (<em>string</em><em>, </em><em>optional</em>) – URL of YAML ADT. Required if ADT is empty.
-Defaults to None.</p></li>
-<li><p><strong>params</strong> (<em>dict</em><em>, </em><em>optional</em>) – TOSCA input parameters. Defaults to {}.</p></li>
-<li><p><strong>dryrun</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to skip execution of components.
-Defaults to False.</p></li>
-</ul>
-</dd>
-</dl>
-<p>Usage:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">applications</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;stresstest&quot;</span><span class="p">,</span>
-<span class="go">                               url=&quot;example.com/repo/adt.yaml&quot;)</span>
-<span class="go">&quot;stresstest created successfully&quot;</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>ID and status of deployment</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="micado.models.application.Applications.delete">
-<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#micado.models.application.Applications.delete" title="Link to this definition">¶</a></dt>
-<dd><p>Deletes an application in MiCADO given its ID.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>app_id</strong> (<em>string</em>) – Application ID to delete</p>
-</dd>
-</dl>
-<p>Usage:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">applications</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;stresstest&quot;</span><span class="p">)</span>
-<span class="go">&quot;stresstest deleted successfully&quot;</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>ID and status of deletion</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">micado.models.application.</span></span><span class="sig-name descname"><span class="pre">Applications</span></span><a class="headerlink" href="#micado.models.application.Applications" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </section>
 
@@ -209,7 +104,7 @@ Defaults to False.</p></li>
       &#169;2022, Jay DesLauriers.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
